@@ -9,16 +9,40 @@ running = True
 dt = 0
 
 class Unit:
-    def __init__(self, width, height, speed):
-        self.width = width
-        self.height = height
-        self.speed = speed
+    def __init__(self, name, pos_x, pos_y):
+        self.name = name
+        self.pos = [pos_x, pos_y]
 
 
 
 class Player(Unit):
-    def __init__(self, width, height, speed):
-        super().__init__(width, height, speed)
+    def __init__(self, name, width, height, speed, pos_x, pos_y):
+        super().__init__(name, pos_x, pos_y)
+        self.width = width
+        self. height = height
+        self.speed = speed
+        self.__hit_box = [
+            self.pos[0] - (self.width * .5), 
+            self.pos[1] - (self.height * .5), 
+            self.pos[0] + (self.width * .5),
+            self.pos[1] + (self.height * .5)
+        ] # to be determined later
+
+    #player movement methods
+    def move_left(self):
+        self.pos[0] -= self.speed * dt
+
+    def move_right(self):
+        self.pos[0]  += self.speed * dt
+
+    def move_up(self):
+        self.pos[1] -= self.speed * dt
+
+    def move_down(self):
+        self.pos[1] += self.speed * dt
+
+
+
 
 
 class Zombie(Unit):
@@ -29,8 +53,10 @@ class Zombie(Unit):
 
 
 
-player_pos = [screen.get_width() / 2, screen.get_height() / 2]
+player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
 player_speed = 100
+player = Player("Jared", 2, 2, player_speed, player_start_pos[0], player_start_pos[1])
+print(player)
 
 while running:
     # poll for events
@@ -42,18 +68,20 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
 
-    pygame.draw.circle(screen, "green", player_pos, 20)
+    # using asset as player image
+    player_img =  pygame.image.load("assets/PlayerSprite.png")
+    screen.blit(player_img, player.pos)
 
     # Player movements
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
-        player_pos[0] -= player_speed * dt
+        player.move_left()
     if keys[pygame.K_d]:
-        player_pos[0] += player_speed * dt
+        player.move_right()
     if keys[pygame.K_s]:
-        player_pos[1] += player_speed * dt
+        player.move_down()
     if keys[pygame.K_w]:
-        player_pos[1]-= player_speed * dt
+        player.move_up()
 
 
 
