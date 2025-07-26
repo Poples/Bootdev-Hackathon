@@ -1,5 +1,5 @@
 # Example file showing a circle moving on screen
-import pygame, sys, random, MapGeneration as MG
+import pygame, sys, random
 
 # pygame setup
 pygame.init()
@@ -8,19 +8,42 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
-font = pygame.font.SysFont(None, 36,)
 
-tile_map = MG.generate_tile_map()
-MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
+TILE_MAP_SIZE = 20
+tile_map = [[random.randint(0, 1) for _ in range(TILE_MAP_SIZE)] for _ in range(TILE_MAP_SIZE)]  # 20x12 tiles
+TILE_SIZE = 64
+tile_colors = {0: (34, 139, 34), 1: (139, 69, 19),2: (0, 255, 255) }   # upgrade station (cyan)}
+
+MAP_PIXEL_WIDTH = TILE_MAP_SIZE * TILE_SIZE
+MAP_PIXEL_HEIGHT = TILE_MAP_SIZE * TILE_SIZE
+
 # Offset to draw the tile map centered on screen
 map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
 map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
+
+def draw_tile_map(screen, tile_map, offset_x, offset_y):
+    for row_index, row in enumerate(tile_map):
+        for col_index, tile in enumerate(row):
+            tile_color = tile_colors.get(tile, (0, 0, 0))
+            tile_rect = pygame.Rect(
+                offset_x + col_index * TILE_SIZE,
+                offset_y + row_index * TILE_SIZE,
+                TILE_SIZE,
+                TILE_SIZE
+            )
+            pygame.draw.rect(screen, tile_color, tile_rect)
+
+def get_tile_coordinates_from_position(pos, offset_x, offset_y):
+    tile_x = int((pos[0] - offset_x) // TILE_SIZE)
+    tile_y = int((pos[1] - offset_y) // TILE_SIZE)
+    return tile_x, tile_y
 
 class Unit:
     def __init__(self, name, pos_x, pos_y):
         self.name = name
         self.pos = [pos_x, pos_y]
+
+
 
 class Player(Unit):
     def __init__(self, name, health, width, height, move_speed, pos_x, pos_y, atk_speed):
@@ -50,9 +73,17 @@ class Player(Unit):
     def move_down(self):
         self.pos[1] += self.speed * dt
 
+
+
+
+
 class Zombie(Unit):
     def __init__(self, width, height, speed):
         super().__init__(width, height, speed)
+
+
+
+
 
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
 player_speed = 100
@@ -67,15 +98,16 @@ while running:
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
-    MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
+    draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
 
-    tile_x, tile_y = MG.get_tile_coordinates_from_position(player.pos, map_offset_x, map_offset_y)
-    if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
+    tile_x, tile_y = get_tile_coordinates_from_position(player.pos, map_offset_x, map_offset_y)
+
+    # Bounds check to avoid crashing
+    if 0 <= tile_x < TILE_MAP_SIZE and 0 <= tile_y < TILE_MAP_SIZE:
         current_tile = tile_map[tile_y][tile_x]
-        if current_tile == 2:
-            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
-            text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
-            screen.blit(text_surface, text_rect)
+        
+        if current_tile == 1:  # example: tile type 1 = upgrade station
+            print("Player is on an upgrade station!")
     # using asset as player image
     player_img =  pygame.image.load("assets/PlayerSprite.png")
     screen.blit(player_img, player.pos)
@@ -91,6 +123,9 @@ while running:
     if keys[pygame.K_w]:
         player.move_up()
 
+
+
+    
 
     # flip() the display to put your work on screen
     pygame.display.flip()

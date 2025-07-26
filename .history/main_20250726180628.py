@@ -73,7 +73,7 @@ while running:
     if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
         current_tile = tile_map[tile_y][tile_x]
         if current_tile == 2:
-            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
+            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # White color
             text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
             screen.blit(text_surface, text_rect)
     # using asset as player image

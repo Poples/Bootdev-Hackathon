@@ -8,8 +8,6 @@ clock = pygame.time.Clock()
 running = True
 dt = 0
 
-font = pygame.font.SysFont(None, 36,)
-
 tile_map = MG.generate_tile_map()
 MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
 MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
@@ -50,9 +48,17 @@ class Player(Unit):
     def move_down(self):
         self.pos[1] += self.speed * dt
 
+
+
+
+
 class Zombie(Unit):
     def __init__(self, width, height, speed):
         super().__init__(width, height, speed)
+
+
+
+
 
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
 player_speed = 100
@@ -67,15 +73,16 @@ while running:
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
-    MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
+    draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
 
-    tile_x, tile_y = MG.get_tile_coordinates_from_position(player.pos, map_offset_x, map_offset_y)
-    if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
+    tile_x, tile_y = get_tile_coordinates_from_position(player.pos, map_offset_x, map_offset_y)
+
+    # Bounds check to avoid crashing
+    if 0 <= tile_x < TILE_MAP_SIZE and 0 <= tile_y < TILE_MAP_SIZE:
         current_tile = tile_map[tile_y][tile_x]
-        if current_tile == 2:
-            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
-            text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
-            screen.blit(text_surface, text_rect)
+        
+        if current_tile == 2: 
+            print("Player is on an upgrade station!")
     # using asset as player image
     player_img =  pygame.image.load("assets/PlayerSprite.png")
     screen.blit(player_img, player.pos)
@@ -91,6 +98,9 @@ while running:
     if keys[pygame.K_w]:
         player.move_up()
 
+
+
+    
 
     # flip() the display to put your work on screen
     pygame.display.flip()
