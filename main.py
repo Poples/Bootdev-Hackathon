@@ -16,11 +16,13 @@ class Unit:
 
 
 class Player(Unit):
-    def __init__(self, name, width, height, speed, pos_x, pos_y):
+    def __init__(self, name, health, width, height, move_speed, pos_x, pos_y, atk_speed):
         super().__init__(name, pos_x, pos_y)
+        self.health = health
         self.width = width
         self. height = height
-        self.speed = speed
+        self.speed = move_speed
+        self.atk_speed = atk_speed
         self.__hit_box = [
             self.pos[0] - (self.width * .5), 
             self.pos[1] - (self.height * .5), 
@@ -55,8 +57,7 @@ class Zombie(Unit):
 
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
 player_speed = 100
-player = Player("Jared", 2, 2, player_speed, player_start_pos[0], player_start_pos[1])
-print(player)
+player = Player("Jared", 100, 2, 2, player_speed, player_start_pos[0], player_start_pos[1], 1)
 
 while running:
     # poll for events
