@@ -1,3 +1,7 @@
 venv/
 .vscode/
-assets/
+__pycache__/
+*.py[cod]
+!.gitignore
+.gitignore
+.history/
