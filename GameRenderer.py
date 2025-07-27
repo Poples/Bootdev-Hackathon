@@ -1,10 +1,10 @@
 # GameRenderer.py - Rendering system for all game objects
 import pygame
 
-def render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y):
+def render_game_objects(screen, player, zombies, bullets, zombie_img, bullet_img, camera_x, camera_y):
     
     player_screen_x, player_screen_y = player.pos[0] - camera_x, player.pos[1] - camera_y
-    screen.blit(player_img, (player_screen_x, player_screen_y))
+    screen.blit(player.image, (player_screen_x, player_screen_y))
     
     for zombie in zombies:
         zombie_screen_x = zombie.pos[0] - camera_x

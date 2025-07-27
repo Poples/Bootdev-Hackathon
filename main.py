@@ -25,27 +25,28 @@ font = pygame.font.SysFont(None, 36,)
 tile_map = MG.generate_tile_map()
 MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
 MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-
 # Camera variables
 camera_x = 0
 camera_y = 0
 
 # Game configuration constants
 PLAYER_SPEED = 200
+PLAYER_HEALTH = 100
+PLAYER_ATK_SPEED = 1
 SHOT_COOLDOWN = 2000  # 2 seconds in milliseconds
 BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
 SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
 DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
-
-# Initialize player
-player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player = Player("Jared", 100, 2, 2, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], 1)
 
 # Load sprites
 player_img = pygame.image.load("assets/PlayerSprite.png")
 zombie_img = pygame.image.load("assets/WalkerZombieSprite.png")
 bullet_img = pygame.image.load("assets/BulletSprite.png")
 xp_img = pygame.image.load("assets/XPOrbSprite.png")
+
+# Initialize player
+player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
+player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], PLAYER_ATK_SPEED, player_img)
 
 # Game object lists
 zombies = []
@@ -55,6 +56,11 @@ bullets = []
 last_shot_time = 0
 last_spawn_time = 0
 game_start_time = 0
+
+
+# Offset to draw the tile map centered on screen
+map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
+map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
 
 # Player inventory and tile tracking
 player_inventory = PlayerInventory()
@@ -111,6 +117,7 @@ while running:
             #    has_picked_up.add(tile_key)
             #    tile_map[tile_y][tile_x] = random.choice([0, 1])
             if tile_key not in has_picked_up:
+
                 has_picked_up.add(tile_key)
 
                 # Draw everything before pausing
@@ -152,7 +159,7 @@ while running:
             zombie.attack_player(player, current_time)
     
     # Render all game objects
-    render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y)
+    render_game_objects(screen, player, zombies, bullets, zombie_img, bullet_img, camera_x, camera_y)
     
     # Draw UI
     draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
@@ -173,15 +180,20 @@ while running:
 
     # Handle game over
     is_game_over = draw_game_over_screen(screen, font, player)
-    
-    # Handle input
+  
+    # Player movements
     keys = pygame.key.get_pressed()
+
+    # Handle input
     should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+
     if should_quit:
         running = False
 
+
     # Update display
     pygame.display.flip()
+
     dt = clock.tick(60) / 1000
 
 pygame.quit()
