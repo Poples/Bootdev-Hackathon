@@ -8,7 +8,7 @@ TILE_SIZE = 64
 tile_colors = {
     0: (34, 139, 34),   # grass
     1: (139, 69, 19),   # dirt
-    2: (0, 255, 255)   # upgrade station (cyan)
+    2: (0, 255, 255)    # upgrade station (cyan)
 }
 # Load tree sprite once
 tree_sprite = pygame.image.load("assets/TreeSprite.png")
@@ -45,7 +45,7 @@ def draw_tile_map(screen, tile_map, offset_x, offset_y):
             if tile==0:
                 screen.blit(tree_sprite, tile_rect.topleft)
             if tile==1:
-                screen.blit(rock_sprite, tile_rect.topleft)
+                screen.blit(tree_sprite, tile_rect.topleft)
 def get_tile_coordinates_from_position(pos, offset_x, offset_y):
     tile_x = int((pos[0] - offset_x) // TILE_SIZE)
     tile_y = int((pos[1] - offset_y) // TILE_SIZE)

@@ -8,7 +8,7 @@ TILE_SIZE = 64
 tile_colors = {
     0: (34, 139, 34),   # grass
     1: (139, 69, 19),   # dirt
-    2: (0, 255, 255)   # upgrade station (cyan)
+    2: (0, 255, 255)    # upgrade station (cyan)
 }
 # Load tree sprite once
 tree_sprite = pygame.image.load("assets/TreeSprite.png")

@@ -28,7 +28,7 @@ class Player(Unit):
         super().__init__(name, pos_x, pos_y)
         self.health = health
         self.width = width
-        self.height = height
+        self. height = height
         self.speed = move_speed
         self.atk_speed = atk_speed
         self.__hit_box = [
@@ -56,7 +56,7 @@ class Zombie(Unit):
         super().__init__(width, height, speed)
 
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player_speed = 200
+player_speed = 100
 player = Player("Jared", 100, 2, 2, player_speed, player_start_pos[0], player_start_pos[1], 1)
 
 
@@ -86,14 +86,13 @@ while running:
                 has_picked_up.add(tile_key)
                 # Change the tile to grass (0) or dirt (1)
                 tile_map[tile_y][tile_x] = random.choice([0, 1])
-            #text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
-            #text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
-            #screen.blit(text_surface, text_rect)
+
+            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
+            text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
+            screen.blit(text_surface, text_rect)
     # using asset as player image
     player_img =  pygame.image.load("assets/PlayerSprite.png")
     screen.blit(player_img, player.pos)
-
-    player_inventory.draw_inventory(screen,font)
 
     # Player movements
     keys = pygame.key.get_pressed()

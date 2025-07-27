@@ -86,9 +86,9 @@ while running:
                 has_picked_up.add(tile_key)
                 # Change the tile to grass (0) or dirt (1)
                 tile_map[tile_y][tile_x] = random.choice([0, 1])
-            #text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
-            #text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
-            #screen.blit(text_surface, text_rect)
+            text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
+            text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
+            screen.blit(text_surface, text_rect)
     # using asset as player image
     player_img =  pygame.image.load("assets/PlayerSprite.png")
     screen.blit(player_img, player.pos)
