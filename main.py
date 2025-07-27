@@ -25,7 +25,6 @@ font = pygame.font.SysFont(None, 36,)
 tile_map = MG.generate_tile_map()
 MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
 MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-
 # Camera variables
 camera_x = 0
 camera_y = 0
@@ -55,7 +54,11 @@ last_shot_time = 0
 last_spawn_time = 0
 game_start_time = 0
 
-# Player inventory and tile tracking
+
+# Offset to draw the tile map centered on screen
+map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
+map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
+
 player_inventory = PlayerInventory()
 has_picked_up = set()  # track which tiles we've already picked up
 
@@ -104,10 +107,18 @@ while running:
         if current_tile == 2:
             tile_key = (tile_x, tile_y)
             if tile_key not in has_picked_up:
+                # Give the player one random upgrade
                 player_inventory.add_item("Upgrade Station Token", 1)
+                # Mark tile so we don't pick up twice
                 has_picked_up.add(tile_key)
+                # Change the tile to grass (0) or dirt (1)
                 tile_map[tile_y][tile_x] = random.choice([0, 1])
-    
+            #text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
+            #text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
+            #screen.blit(text_surface, text_rect)
+    # using asset as player image
+    screen.blit(PLAYER.image, PLAYER.pos)
+
     # Get current time
     current_time = pygame.time.get_ticks()
     
@@ -141,15 +152,31 @@ while running:
     
     # Handle game over
     is_game_over = draw_game_over_screen(screen, font, player)
-    
-    # Handle input
+  
+    # Player movements
     keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_a]:
+        PLAYER.move_left()
+
+    if keys[pygame.K_d]:
+        PLAYER.move_right()
+
+    if keys[pygame.K_s]:
+        PLAYER.move_down()
+
+    if keys[pygame.K_w]:
+        PLAYER.move_up()
+
     should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+
     if should_quit:
         running = False
 
+
     # Update display
     pygame.display.flip()
+
     dt = clock.tick(60) / 1000
 
 pygame.quit()
