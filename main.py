@@ -14,23 +14,19 @@ class Unit:
         self.pos = [pos_x, pos_y]
 
 
-
 class Player(Unit):
-    def __init__(self, name, health, width, height, move_speed, pos_x, pos_y, atk_speed):
-        super().__init__(name, pos_x, pos_y)
-        self.health = health
-        self.width = width
-        self. height = height
-        self.speed = move_speed
-        self.atk_speed = atk_speed
-        self.__hit_box = [
-            self.pos[0] - (self.width * .5), 
-            self.pos[1] - (self.height * .5), 
-            self.pos[0] + (self.width * .5),
-            self.pos[1] + (self.height * .5)
-        ] # to be determined later
-
-    #player movement methods
+    def __init__(self, name):
+        PLAYER_START_POS = [screen.get_width() / 2, screen.get_height() / 2] # Center of screen
+        self.image = pygame.image.load("assets/PlayerSprite.png")
+        IMG_rect = self.image.get_rect(center=PLAYER_START_POS) # Centralize the image on the center on the screen
+        hit_box_rect = self.image.get_rect(topleft=self.pos) # Setting the start point for hit box
+        super().__init__(name, IMG_rect[0], IMG_rect[1])
+        self.health = 100
+        self.width, self.height = self.image.get_size()
+        self.speed = 100
+        self.atk_speed = 1
+        
+    # Player movement methods
     def move_left(self):
         self.pos[0] -= self.speed * dt
 
@@ -43,21 +39,20 @@ class Player(Unit):
     def move_down(self):
         self.pos[1] += self.speed * dt
 
-
-
+    
 
 
 class Zombie(Unit):
-    def __init__(self, width, height, speed):
-        super().__init__(width, height, speed)
+    def __init__(self, name, pos_x, pos_y, width, height, move_speed):
+        super().__init__(name, pos_x, pos_y)
+        self.width = width
+        self.height = height
+        self.move_speed = move_speed
 
 
+PLAYER_START_POS = [screen.get_width() / 2, screen.get_height() / 2]
+PLAYER = Player("Jared")
 
-
-
-player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player_speed = 100
-player = Player("Jared", 100, 2, 2, player_speed, player_start_pos[0], player_start_pos[1], 1)
 
 while running:
     # poll for events
@@ -70,19 +65,24 @@ while running:
     screen.fill("black")
 
     # using asset as player image
-    player_img =  pygame.image.load("assets/PlayerSprite.png")
-    screen.blit(player_img, player.pos)
-
+    screen.blit(PLAYER.image, PLAYER.pos)
+  
     # Player movements
     keys = pygame.key.get_pressed()
+
     if keys[pygame.K_a]:
-        player.move_left()
+        PLAYER.move_left()
+
     if keys[pygame.K_d]:
-        player.move_right()
+        PLAYER.move_right()
+
     if keys[pygame.K_s]:
-        player.move_down()
+        PLAYER.move_down()
+
     if keys[pygame.K_w]:
-        player.move_up()
+        PLAYER.move_up()
+
+    
 
 
 
