@@ -61,6 +61,7 @@ game_start_time = 0
 map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
 map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
 
+# Player inventory and tile tracking
 player_inventory = PlayerInventory()
 has_picked_up = set()  # track which tiles we've already picked up
 
@@ -158,6 +159,7 @@ while running:
     # Player movements
     keys = pygame.key.get_pressed()
 
+    # Handle input
     should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 
     if should_quit:
