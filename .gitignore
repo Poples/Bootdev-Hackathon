@@ -1,6 +1,5 @@
+.gitignore
 venv/
 .vscode/
-__pycache__/
-*.py[cod]
-!.gitignore
 .history/
+__pycache__/
