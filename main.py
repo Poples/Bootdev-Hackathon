@@ -3,13 +3,13 @@ import pygame
 import sys
 import random
 import math
-import MapGeneration as MG
-from PlayerInventory import PlayerInventory
+import MapGeneration as MG, PowerUpgrades
+from PlayerInventory import PlayerInventory, XPOrb
 from Units import Player, Zombie
 from Combat import (shoot_at_nearest_zombie, update_bullets, check_bullet_zombie_collisions, 
                    continuous_spawn_system)
 from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input
-from Camera import update_camera, get_map_offset
+from Camera import update_camera, get_map_offset , get_screen_position
 from GameRenderer import render_game_objects
 
 # pygame setup
@@ -45,6 +45,7 @@ player = Player("Jared", 100, 2, 2, PLAYER_SPEED, player_start_pos[0], player_st
 player_img = pygame.image.load("assets/PlayerSprite.png")
 zombie_img = pygame.image.load("assets/WalkerZombieSprite.png")
 bullet_img = pygame.image.load("assets/BulletSprite.png")
+xp_img = pygame.image.load("assets/XPOrbSprite.png")
 
 # Game object lists
 zombies = []
@@ -57,7 +58,9 @@ game_start_time = 0
 
 # Player inventory and tile tracking
 player_inventory = PlayerInventory()
+player.inventory = player_inventory 
 has_picked_up = set()  # track which tiles we've already picked up
+xp_orbs = []
 
 # Spawn initial zombies around the map
 for i in range(5):  # Start with 5 zombies
@@ -103,10 +106,30 @@ while running:
         current_tile = tile_map[tile_y][tile_x]
         if current_tile == 2:
             tile_key = (tile_x, tile_y)
+            #if tile_key not in has_picked_up:
+            #    player_inventory.add_item("Upgrade Station Token", 1)
+            #    has_picked_up.add(tile_key)
+            #    tile_map[tile_y][tile_x] = random.choice([0, 1])
             if tile_key not in has_picked_up:
-                player_inventory.add_item("Upgrade Station Token", 1)
                 has_picked_up.add(tile_key)
+
+                # Draw everything before pausing
+                render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y)
+                draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
+                            game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
+                            last_spawn_time)
+                player_inventory.draw_inventory(screen, font)
+                for orb in xp_orbs[:]:
+                    XPOrb.draw(orb, screen, camera_x, camera_y)
+
+                pygame.display.flip()  # Show the last game frame
+
+                # Then pause the game and show upgrade
+                PowerUpgrades.open_upgrade_screen(screen, player, PowerUpgrades.apply_upgrade, font, screen.get_width(), screen.get_height())
+
+                # After choosing upgrade, replace the tile
                 tile_map[tile_y][tile_x] = random.choice([0, 1])
+                continue  # Skip the rest of the update this frame
     
     # Get current time
     current_time = pygame.time.get_ticks()
@@ -115,7 +138,7 @@ while running:
     shot_fired, last_shot_time = shoot_at_nearest_zombie(player.pos, zombies, bullets, current_time, 
                                                         last_shot_time, SHOT_COOLDOWN)
     update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
-    check_bullet_zombie_collisions(bullets, zombies)
+    check_bullet_zombie_collisions(bullets, zombies,xp_orbs)
     
     # Spawning system
     last_spawn_time = continuous_spawn_system(player.pos, zombies, current_time, last_spawn_time, 
@@ -139,6 +162,15 @@ while running:
     # Draw inventory
     player_inventory.draw_inventory(screen, font)
     
+    # Draw XP orbs
+    for orb in xp_orbs[:]:
+        if orb.check_collision_with_player(player):
+            orb.collected = True
+            xp_orbs.remove(orb)
+            player_inventory.add_item("XP", orb.value)
+        else:
+            XPOrb.draw(orb, screen, camera_x, camera_y)
+
     # Handle game over
     is_game_over = draw_game_over_screen(screen, font, player)
     

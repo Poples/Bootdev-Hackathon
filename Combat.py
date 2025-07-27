@@ -2,6 +2,7 @@
 import math
 import random
 from Units import Bullet, Zombie
+from PlayerInventory import XPOrb
 
 def find_nearest_zombie(player_pos, zombies):
     
@@ -45,7 +46,7 @@ def update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
         if not bullet.active:
             bullets.remove(bullet)
 
-def check_bullet_zombie_collisions(bullets, zombies):
+def check_bullet_zombie_collisions(bullets, zombies,xp_orbs):
 
     for bullet in bullets[:]:
         for zombie in zombies[:]:
@@ -56,6 +57,7 @@ def check_bullet_zombie_collisions(bullets, zombies):
                 
                 if zombie.health <= 0:
                     zombies.remove(zombie)
+                    xp_orbs.append(XPOrb(zombie.pos[0], zombie.pos[1]))
                     print(f"Zombie killed! Remaining zombies: {len(zombies)}")
                 break
 
