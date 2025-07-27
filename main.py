@@ -31,19 +31,21 @@ camera_y = 0
 
 # Game configuration constants
 PLAYER_SPEED = 200
+PLAYER_HEALTH = 100
+PLAYER_ATK_SPEED = 1
 SHOT_COOLDOWN = 2000  # 2 seconds in milliseconds
 BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
 SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
 DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 
-# Initialize player
-player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player = Player("Jared", 100, 2, 2, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], 1)
-
 # Load sprites
 player_img = pygame.image.load("assets/PlayerSprite.png")
 zombie_img = pygame.image.load("assets/WalkerZombieSprite.png")
 bullet_img = pygame.image.load("assets/BulletSprite.png")
+
+# Initialize player
+player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
+player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], PLAYER_ATK_SPEED, player_img)
 
 # Game object lists
 zombies = []
@@ -117,7 +119,7 @@ while running:
             #text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
             #screen.blit(text_surface, text_rect)
     # using asset as player image
-    screen.blit(PLAYER.image, PLAYER.pos)
+    #screen.blit(PLAYER.image, PLAYER.pos)
 
     # Get current time
     current_time = pygame.time.get_ticks()
@@ -140,7 +142,7 @@ while running:
             zombie.attack_player(player, current_time)
     
     # Render all game objects
-    render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y)
+    render_game_objects(screen, player, zombies, bullets, zombie_img, bullet_img, camera_x, camera_y)
     
     # Draw UI
     draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
@@ -155,18 +157,6 @@ while running:
   
     # Player movements
     keys = pygame.key.get_pressed()
-
-    if keys[pygame.K_a]:
-        PLAYER.move_left()
-
-    if keys[pygame.K_d]:
-        PLAYER.move_right()
-
-    if keys[pygame.K_s]:
-        PLAYER.move_down()
-
-    if keys[pygame.K_w]:
-        PLAYER.move_up()
 
     should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 

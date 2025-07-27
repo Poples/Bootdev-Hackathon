@@ -8,11 +8,11 @@ class Unit:
         self.pos = [pos_x, pos_y]
 
 class Player(Unit):
-    def __init__(self, name, health, width, height, move_speed, pos_x, pos_y, atk_speed):
+    def __init__(self, name, health, move_speed, pos_x, pos_y, atk_speed, player_image):
         super().__init__(name, pos_x, pos_y)
         self.health = health
-        self.width = width
-        self.height = height
+        self.image = player_image
+        self.width, self.height = self.image.get_size()
         self.speed = move_speed
         self.atk_speed = atk_speed
         self.__hit_box = [
