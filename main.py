@@ -121,7 +121,7 @@ while running:
                 has_picked_up.add(tile_key)
 
                 # Draw everything before pausing
-                render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y)
+                render_game_objects(screen, player, zombies, bullets, zombie_img, bullet_img, camera_x, camera_y)
                 draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
                             game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
                             last_spawn_time)
