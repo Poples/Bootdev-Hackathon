@@ -1,5 +1,5 @@
-.gitignore
 venv/
 .vscode/
+assets/
 .history/
 __pycache__/

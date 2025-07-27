@@ -1,9 +1,17 @@
-# Bootdev-Hackathon.
+# Bootdev Hackathon - Top-Down Zombie Survival Game
 
+A top-down zombie survival game built with Python and Pygame, inspired by bullet hell and vampire survivors gameplay.
 
-- [ ] Define Core Loop: VS Swarm style
-- [ ] Art Style / Theme: Zombie apocalypse, surviving zombies, on levelup upgrades weapon, no different weapons.
-- [ ] Player Abilities: Increased atk spd, increased dmg, increased movespeed, increased health
-- [ ] Enemy types: Walker, Ranged, Tank
-- [ ] Scaling: TBD Player stat scaling formulas, Lvl 1-3 walkers, lvl 3-6 walkers/ranged, levels 6-inf walkers/ranged/tanks, every certain num of ticks increase spawn rate by a TBD percentage 
-- [ ] Game end condition: Game over on death
+### Completed
+- [x] Core game loop (VS/Swarm style)
+- [x] Zombie apocalypse theme with walker zombies  
+- [x] Basic player movement and auto-shooting
+- [x] Time-based scaling difficulty
+- [x] Game over on death condition
+
+### In Progress/Next Steps
+- [ ] Player upgrade system using collected tokens
+- [ ] Player abilities: Increased attack speed, damage, movement speed, health
+- [ ] Additional enemy types: Ranged, Tank zombies
+- [ ] Refined scaling formulas and spawn rate increases
+- [ ] Level-based enemy progression (1-3 walkers, 3-6 walkers/ranged, 6+ all types)

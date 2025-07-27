@@ -1,6 +1,16 @@
-# Example file showing a circle moving on screen
-import pygame, sys, random, MapGeneration as MG
+# main.py - Main game loop and initialization
+import pygame
+import sys
+import random
+import math
+import MapGeneration as MG
 from PlayerInventory import PlayerInventory
+from Units import Player, Zombie
+from Combat import (shoot_at_nearest_zombie, update_bullets, check_bullet_zombie_collisions, 
+                   continuous_spawn_system)
+from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input
+from Camera import update_camera, get_map_offset
+from GameRenderer import render_game_objects
 
 # pygame setup
 pygame.init()
@@ -11,113 +21,135 @@ dt = 0
 
 font = pygame.font.SysFont(None, 36,)
 
+# Game world setup
 tile_map = MG.generate_tile_map()
 MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
 MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-# Offset to draw the tile map centered on screen
-map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
-map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
 
-class Unit:
-    def __init__(self, name, pos_x, pos_y):
-        self.name = name
-        self.pos = [pos_x, pos_y]
+# Camera variables
+camera_x = 0
+camera_y = 0
 
-class Player(Unit):
-    def __init__(self, name, health, width, height, move_speed, pos_x, pos_y, atk_speed):
-        super().__init__(name, pos_x, pos_y)
-        self.health = health
-        self.width = width
-        self.height = height
-        self.speed = move_speed
-        self.atk_speed = atk_speed
-        self.__hit_box = [
-            self.pos[0] - (self.width * .5), 
-            self.pos[1] - (self.height * .5), 
-            self.pos[0] + (self.width * .5),
-            self.pos[1] + (self.height * .5)
-        ] # to be determined later
+# Game configuration constants
+PLAYER_SPEED = 200
+SHOT_COOLDOWN = 2000  # 2 seconds in milliseconds
+BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
+SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
+DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 
-    #player movement methods
-    def move_left(self):
-        self.pos[0] -= self.speed * dt
-
-    def move_right(self):
-        self.pos[0]  += self.speed * dt
-
-    def move_up(self):
-        self.pos[1] -= self.speed * dt
-
-    def move_down(self):
-        self.pos[1] += self.speed * dt
-
-class Zombie(Unit):
-    def __init__(self, width, height, speed):
-        super().__init__(width, height, speed)
-
+# Initialize player
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player_speed = 200
-player = Player("Jared", 100, 2, 2, player_speed, player_start_pos[0], player_start_pos[1], 1)
+player = Player("Jared", 100, 2, 2, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], 1)
 
+# Load sprites
+player_img = pygame.image.load("assets/PlayerSprite.png")
+zombie_img = pygame.image.load("assets/WalkerZombieSprite.png")
+bullet_img = pygame.image.load("assets/BulletSprite.png")
 
+# Game object lists
+zombies = []
+bullets = []
+
+# Game state variables
+last_shot_time = 0
+last_spawn_time = 0
+game_start_time = 0
+
+# Player inventory and tile tracking
 player_inventory = PlayerInventory()
 has_picked_up = set()  # track which tiles we've already picked up
 
+# Spawn initial zombies around the map
+for i in range(5):  # Start with 5 zombies
+    # Spawn zombies in a circle around the player at a safe distance
+    angle = (i / 5) * 2 * math.pi
+    spawn_distance = 300  # pixels away from player
+    zombie_x = player.pos[0] + math.cos(angle) * spawn_distance
+    zombie_y = player.pos[1] + math.sin(angle) * spawn_distance
+    
+    # Ensure zombies spawn within map bounds
+    zombie_x = max(50, min(MAP_PIXEL_WIDTH - 50, zombie_x))
+    zombie_y = max(50, min(MAP_PIXEL_HEIGHT - 50, zombie_y))
+    
+    zombie = Zombie(f"Zombie_{i}", zombie_x, zombie_y)
+    zombies.append(zombie)
+
+# Initialize game start time
+game_start_time = pygame.time.get_ticks()
+
+# Main game loop
+
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
+    # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # fill the screen with a color to wipe away anything from last frame
+    # Clear screen
     screen.fill("black")
+    
+    # Update camera
+    camera_x, camera_y = update_camera(player.pos, screen.get_width(), screen.get_height())
+    map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
+    
+    # Draw tile map
     MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
 
-    tile_x, tile_y = MG.get_tile_coordinates_from_position(player.pos, map_offset_x, map_offset_y)
+    # Handle tile pickup logic
+    tile_x = int(player.pos[0] // MG.TILE_SIZE)
+    tile_y = int(player.pos[1] // MG.TILE_SIZE)
+    
     if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
         current_tile = tile_map[tile_y][tile_x]
         if current_tile == 2:
             tile_key = (tile_x, tile_y)
             if tile_key not in has_picked_up:
-                # Give the player one random upgrade
                 player_inventory.add_item("Upgrade Station Token", 1)
-                # Mark tile so we don't pick up twice
                 has_picked_up.add(tile_key)
-                # Change the tile to grass (0) or dirt (1)
                 tile_map[tile_y][tile_x] = random.choice([0, 1])
-            #text_surface = font.render("IN UPGRADE STATION", True, (255, 255, 0))  # yellow
-            #text_rect = text_surface.get_rect(topright=(screen.get_width() - 10, 10))  # 10px padding from top-right corner
-            #screen.blit(text_surface, text_rect)
-    # using asset as player image
-    player_img =  pygame.image.load("assets/PlayerSprite.png")
-    screen.blit(player_img, player.pos)
-
-    player_inventory.draw_inventory(screen,font)
-
-    # Player movements
+    
+    # Get current time
+    current_time = pygame.time.get_ticks()
+    
+    # Combat system
+    shot_fired, last_shot_time = shoot_at_nearest_zombie(player.pos, zombies, bullets, current_time, 
+                                                        last_shot_time, SHOT_COOLDOWN)
+    update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+    check_bullet_zombie_collisions(bullets, zombies)
+    
+    # Spawning system
+    last_spawn_time = continuous_spawn_system(player.pos, zombies, current_time, last_spawn_time, 
+                                            game_start_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
+                                            DIFFICULTY_INCREASE_INTERVAL, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+    
+    # Update zombies
+    for zombie in zombies:
+        zombie.move_towards_player(player.pos, dt)
+        if zombie.check_collision_with_player(player):
+            zombie.attack_player(player, current_time)
+    
+    # Render all game objects
+    render_game_objects(screen, player, zombies, bullets, player_img, zombie_img, bullet_img, camera_x, camera_y)
+    
+    # Draw UI
+    draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
+                game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
+                last_spawn_time)
+    
+    # Draw inventory
+    player_inventory.draw_inventory(screen, font)
+    
+    # Handle game over
+    is_game_over = draw_game_over_screen(screen, font, player)
+    
+    # Handle input
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_a]:
-        player.move_left()
-    if keys[pygame.K_d]:
-        player.move_right()
-    if keys[pygame.K_s]:
-        player.move_down()
-    if keys[pygame.K_w]:
-        player.move_up()
+    should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+    if should_quit:
+        running = False
 
-    #enemy
-    # WalkerZombie = pygame.image.load("assets/WalkerZombieSprite.png")
-    # screen.blit(WalkerZombie, (500, 600))
-
-
-
-    # flip() the display to put your work on screen
+    # Update display
     pygame.display.flip()
-
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
     dt = clock.tick(60) / 1000
 
 pygame.quit()
