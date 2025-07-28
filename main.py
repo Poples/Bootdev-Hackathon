@@ -30,10 +30,11 @@ camera_x = 0
 camera_y = 0
 
 # Game configuration constants
+screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
 PLAYER_SPEED = 200
 PLAYER_HEALTH = 100
 PLAYER_ATK_SPEED = 1
-SHOT_COOLDOWN = 2000  # 2 seconds in milliseconds
+SHOT_COOLDOWN = 2000 # 2 seconds in milliseconds
 BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
 SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
 DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
@@ -142,7 +143,7 @@ while running:
     current_time = pygame.time.get_ticks()
     
     # Combat system
-    shot_fired, last_shot_time = shoot_at_nearest_zombie(player.pos, zombies, bullets, current_time, 
+    shot_fired, last_shot_time = shoot_at_nearest_zombie(player, zombies, bullets, current_time, 
                                                         last_shot_time, SHOT_COOLDOWN)
     update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
     check_bullet_zombie_collisions(bullets, zombies,xp_orbs)
@@ -185,7 +186,7 @@ while running:
     keys = pygame.key.get_pressed()
 
     # Handle input
-    should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+    should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over, screen_rect)
 
     if should_quit:
         running = False
