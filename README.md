@@ -2,7 +2,7 @@
 
 A fast-paced, top-down swarm-style survival game built with Python and Pygame. Fight off hordes of enemies, collect XP, and upgrade your abilities as you survive longer and grow stronger.
 
-🎮 Developed as part of the **[Bootdev]** hackathon on **[7/25/25]**.
+🎮 Developed as part of the **[Bootdev](https://www.boot.dev/)** hackathon on **[7/25/25]**.
 
 ---
 
