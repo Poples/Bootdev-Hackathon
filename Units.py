@@ -18,6 +18,7 @@ class Player(Unit):
         #self.rect = pygame.Rect(self.pos[0],self.pos[1], self.width, self.height)
         #self.pos = pygame.math.Vector2(self.rect)
         self.speed = move_speed
+        self.pickup_radius = 5  # Default pickup radius
         self.atk_speed = atk_speed
         self.__hit_box = [
             self.pos[0] - (self.width * .5), 
@@ -76,8 +77,15 @@ class Player(Unit):
 
 
 class Zombie(Unit):
-    def __init__(self, name, pos_x, pos_y, health=50, width=32, height=32, speed=50):
+    def __init__(self, name, pos_x, pos_y, zombietype, health=50, width=32, height=32, speed=50):
         super().__init__(name, pos_x, pos_y)
+        self.zombietype = zombietype
+        if zombietype == "WalkerZombie":
+            self.health = 50
+        elif zombietype == "TankZombie":
+            self.health = 100
+        else:
+            self.health = health
         self.health = health
         self.width = width
         self.height = height

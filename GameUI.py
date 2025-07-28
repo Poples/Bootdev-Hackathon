@@ -4,7 +4,7 @@ import pygame
 def draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, shot_cooldown,
                 game_start_time, difficulty_increase_interval, base_spawn_interval, spawn_rate_increase,
                 last_spawn_time):
-    
+
     health_text = font.render(f"Health: {player.health}", True, (255, 0, 0))
     screen.blit(health_text, (10, screen.get_height() - 40))
     
@@ -13,7 +13,7 @@ def draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot
     
     bullet_count_text = font.render(f"Bullets: {len(bullets)}", True, (255, 255, 0))
     screen.blit(bullet_count_text, (10, screen.get_height() - 100))
-    
+
     time_since_shot = current_time - last_shot_time
     if time_since_shot < shot_cooldown:
         cooldown_remaining = (shot_cooldown - time_since_shot) / 1000
