@@ -20,7 +20,7 @@ SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 60
 
-PLAYER_SPEED = 200
+PLAYER_SPEED = 5
 PLAYER_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 PLAYER_PICKUP_RADIUS = 5
@@ -68,7 +68,7 @@ def main():
     map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
     # Initialize player in the center of the screen
     player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-    player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], PLAYER_ATK_SPEED, sprites["player"])
+    player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
     
     player_inventory = PlayerInventory()
     player.inventory = player_inventory 
@@ -105,8 +105,7 @@ def main():
         camera_x, camera_y = update_camera(player.pos, screen.get_width(), screen.get_height())
         map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
 
-        # Draw inventory
-        player_inventory.draw_inventory(screen, font)
+        
         # Draw tile map
         MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
         # Handle tile pickup logic
@@ -134,7 +133,7 @@ def main():
                     pygame.display.flip()  # Show the last game frame
                     if random.randint(1, 2) == 1:
                         PowerUpgrades.add_buff(current_buffs, "Speed Boost", 10)
-                        player.speed = player.speed + 15
+                        player.speed = player.speed + 2
                         # Pause and show the random buff screen
                         PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), " Extra Speed", 10)
                     else:
@@ -156,13 +155,15 @@ def main():
         current_buffs, buffs_to_remove = PowerUpgrades.update_buffs(current_buffs, DELTA_TIME)
         for buff_name in buffs_to_remove:
             if buff_name == "Speed Boost":
-                player.speed = player.speed - 15
+                player.speed = player.speed - 2
             elif buff_name == "Pickup Radius":
                 player.pickup_radius = player.pickup_radius - 5
                 for orb in xp_orbs:
                     orb.pickup_radius = player.pickup_radius
         
         PowerUpgrades.draw_buffs(screen, font, screen.get_width(), screen.get_height() , current_buffs)
+        # Draw inventory
+        player_inventory.draw_inventory(screen, font)
         # Draw XP orbs
         for orb in xp_orbs[:]:
             if orb.check_collision_with_player(player):
@@ -220,7 +221,7 @@ def main():
         # Player movements
         keys = pygame.key.get_pressed()
         # Handle input
-        should_quit = handle_player_input(keys, player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over, screen_rect)
+        should_quit = handle_player_input(keys, player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 
         if should_quit:
             running = False
