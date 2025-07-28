@@ -1,6 +1,7 @@
 # MapGeneration.py
 import random
 import pygame
+import PowerUpgrades
 
 TILE_MAP_SIZE = 50
 TILE_SIZE = 64
@@ -76,3 +77,4 @@ def get_tile_coordinates_from_position(pos, offset_x, offset_y):
     tile_x = int((pos[0] - offset_x) // TILE_SIZE)
     tile_y = int((pos[1] - offset_y) // TILE_SIZE)
     return tile_x, tile_y
+

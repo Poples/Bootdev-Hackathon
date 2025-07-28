@@ -22,3 +22,4 @@ def render_game_objects(screen, player, zombies, bullets, sprites, camera_x, cam
         bullet_screen_x = bullet.pos[0] - camera_x
         bullet_screen_y = bullet.pos[1] - camera_y
         screen.blit(sprites["bullet_img"], (bullet_screen_x - 24, bullet_screen_y - 24))
+

@@ -54,8 +54,7 @@ def draw_upgrade_options(screen, options, FONT, screen_width, screen_height):
         screen.blit(text_surface, text_rect)
 
 def apply_upgrade(player, upgrade_type):
-    if hasattr(player, "inventory"):
-        player.inventory.add_item(upgrade_type, 1)
+    player.player_inventory.add_item(upgrade_type, 1)
     print(f"Upgrade added to inventory: {upgrade_type}")
     if upgrade_type == "Fire Rate Up":
         player.gain_atk_speed(0.90)

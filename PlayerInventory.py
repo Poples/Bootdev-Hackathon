@@ -37,7 +37,7 @@ class PlayerInventory:
         x, y = 10, 10  # top-left corner
         for item, quantity in self.items.items():
             if item == "XP":
-                break
+                continue
             text = f"{item}: {quantity}"
             text_surface = font.render(text, True, (255, 255, 0))
             screen.blit(text_surface, (x, y))

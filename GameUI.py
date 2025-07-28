@@ -87,7 +87,7 @@ def draw_status_bars(screen, font, player, player_inventory):
     #screen.blit(health_text, (health_bar_rect.centerx - health_text.get_width() // 2, health_bar_rect.y + bar_height + 2))
 
     # XP bar
-    xp = player_inventory.get_quantity("XP")
+    xp = player.player_inventory.get_quantity("XP")
     xp_ratio = min(xp / 10, 1)
     xp_bar_rect = pygame.Rect(screen_width // 2 - spacing, top_margin, bar_width, bar_height)
     pygame.draw.rect(screen, (50, 0, 50), xp_bar_rect)  # Dark purple background

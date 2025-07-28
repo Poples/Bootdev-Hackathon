@@ -5,6 +5,9 @@ import sys
 import random
 import math
 
+from GameState import GameState
+import GameLogic as GameLogic
+
 import MapGeneration as MG, PowerUpgrades
 from PlayerInventory import PlayerInventory, XPOrb
 from Units import Player, Zombie, RangedZombie
@@ -17,17 +20,12 @@ from GameRenderer import render_game_objects
 # =======================
 # Constants
 # =======================
-
-
-
 FPS = 60
-
 PLAYER_SPEED = 5
 PLAYER_HEALTH = 100
 PLAYER_MAX_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 PLAYER_PICKUP_RADIUS = 5
-
 SHOT_COOLDOWN = 2000 # 2 seconds in milliseconds
 BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
 SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
@@ -59,20 +57,12 @@ def main():
         "Levelup": pygame.mixer.Sound("assets/mixkit_Levelup.wav"),
         "OrbPickup": pygame.mixer.Sound("assets/mixkit_OrbPickup.wav")
     }
+
+    gs = GameState()
+    gs.tile_map = MG.generate_tile_map()
     # Game world setup
-    tile_map = MG.generate_tile_map()
     MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
     MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-    # Game object lists
-    
-    zombies = []
-    bullets = []
-    zombie_projectiles = []
-    xp_orbs = []
-    health_orbs = []
-    current_buffs = []
-
-    has_picked_up = set() # Set to track which upgrade tiles have been picked up
 
     # Game configuration constants
     #screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
@@ -84,64 +74,51 @@ def main():
     map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
     # Initialize player in the center of the screen
     player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-    player = Player("Jared", PLAYER_HEALTH,PLAYER_MAX_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
-    
-    player_inventory = PlayerInventory()
-    player.inventory = player_inventory 
-    # Spawn initial zombies around the map
-    for i in range(5):  # Start with 5 zombies
-        # Spawn zombies in a circle around the player at a safe distance
-        angle = (i / 5) * 2 * math.pi
-        spawn_distance = 600  # pixels away from player
-        zombie_x = player.pos[0] + math.cos(angle) * spawn_distance
-        zombie_y = player.pos[1] + math.sin(angle) * spawn_distance
-        # Ensure zombies spawn within map bounds
-        zombie_x = max(50, min(MAP_PIXEL_WIDTH - 50, zombie_x))
-        zombie_y = max(50, min(MAP_PIXEL_HEIGHT - 50, zombie_y))
-        zombies.append(Zombie(f"Zombie_{i}", zombie_x, zombie_y,"WalkerZombie"))
+     
+    gs.player = Player("Jared", PLAYER_HEALTH,PLAYER_MAX_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
 
-    last_shot_time = 0
-    last_spawn_time = 0
-    game_start_time = 0
-    running = True
-    paused = False
+    gs.player.player_inventory = PlayerInventory()
+
+    # Spawn initial zombies around the map
+    GameLogic.initial_zomebie_spawn(gs, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+    
     DELTA_TIME = 0
-    game_start_time = pygame.time.get_ticks()
+    gs.game_start_time = pygame.time.get_ticks()
 
     # Main game loop
-    while running:
+    while gs.running:
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                gs.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     # Only allow pausing if player is alive
-                    if player.health > 0:
-                        if not paused:
-                            paused = True
-                            pause_start_time = pygame.time.get_ticks()
+                    if gs.player.health > 0:
+                        if not gs.paused:
+                            gs.paused = True
+                            gs.pause_start_time = pygame.time.get_ticks()
                         else:
-                            pause_duration = pygame.time.get_ticks() - pause_start_time
-                            game_start_time += pause_duration
-                            paused = False
+                            gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
+                            gs.game_start_time += gs.pause_duration
+                            gs.paused = False
         # Clear screen
         screen.fill("black")
 
-        if paused:
+        if gs.paused:
 
-            camera_x, camera_y = update_camera(player.pos, screen.get_width(), screen.get_height())
+            camera_x, camera_y = update_camera(gs.player.pos, screen.get_width(), screen.get_height())
             map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
-            MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
-            render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
+            MG.draw_tile_map(screen, gs.tile_map, map_offset_x, map_offset_y)
+            render_game_objects(screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
 
             menu_choice = draw_pause_menu(screen, font)
             if menu_choice == "resume":
-                pause_duration = pygame.time.get_ticks() - pause_start_time
-                game_start_time += pause_duration
-                paused = False
+                gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
+                gs.game_start_time += gs.pause_duration
+                gs.paused = False
             elif menu_choice == "quit":
-                running = False
+                gs.running = False
 
             pygame.display.flip()  # Update the display
             clock.tick(FPS)  # Maintain frame rate
@@ -150,159 +127,83 @@ def main():
         # Get current time
         current_time = pygame.time.get_ticks()
         # Update camera
-        camera_x, camera_y = update_camera(player.pos, screen.get_width(), screen.get_height())
+        camera_x, camera_y = update_camera(gs.player.pos, screen.get_width(), screen.get_height())
         map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
-
         
         # Draw tile map
-        MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
-        # Handle tile pickup logic
-        tile_x = int(player.pos[0] // MG.TILE_SIZE)
-        tile_y = int(player.pos[1] // MG.TILE_SIZE)
+        MG.draw_tile_map(screen, gs.tile_map, map_offset_x, map_offset_y)
+        tile_x = int(gs.player.pos[0] // MG.TILE_SIZE)
+        tile_y = int(gs.player.pos[1] // MG.TILE_SIZE)
+        GameLogic.on_shrine_check(gs.player, MG, sounds, gs.tile_map, gs.xp_orbs, gs.player_inventory, gs.current_buffs, screen, font, clock, gs.game_start_time, tile_x, tile_y)
 
-        if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
-            current_tile = tile_map[tile_y][tile_x]
-            if current_tile == 2:
-                tile_key = (tile_x, tile_y)
-                if tile_key not in has_picked_up:
-                    has_picked_up.add(tile_key)
-                    # Draw everything before pausing
-                    render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
-
-                    draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
-                                game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
-                                last_spawn_time)
-                    player_inventory.draw_inventory(screen, font)
-
-                    for orb in xp_orbs[:]:
-                        XPOrb.draw(orb, screen, camera_x, camera_y)
-                    sounds["Shrine"].play()
-                    pause_start_time = pygame.time.get_ticks()
-                    pygame.display.flip()  # Show the last game frame
-                    if random.randint(1, 2) == 1:
-                        PowerUpgrades.add_buff(current_buffs, "Speed Boost", 10)
-                        player.speed = player.speed + 2
-                        # Pause and show the random buff screen
-                        PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), " Extra Speed", 10)
-                    else:
-                        PowerUpgrades.add_buff(current_buffs, "Pickup Radius", 10)
-                        player.pickup_radius = player.pickup_radius + 5
-                        for orb in xp_orbs:
-                            orb.pickup_radius = player.pickup_radius
-                        # Pause and show the random buff screen
-                        PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), "Pickup Radius", 10)
-                    clock.tick()  # Reset clock after pause
-                    DELTA_TIME = 0
-                    # After choosing upgrade, replace the tile
-                    tile_map[tile_y][tile_x] = random.choice([0, 1])
-                    
-                    pause_duration = pygame.time.get_ticks() - pause_start_time
-                    game_start_time = game_start_time + pause_duration
-                    continue  # Skip the rest of the update this frame
-        # reduce buff durations:
-        current_buffs, buffs_to_remove = PowerUpgrades.update_buffs(current_buffs, DELTA_TIME)
-        for buff_name in buffs_to_remove:
-            if buff_name == "Speed Boost":
-                player.speed = player.speed - 2
-            elif buff_name == "Pickup Radius":
-                player.pickup_radius = player.pickup_radius - 5
-                for orb in xp_orbs:
-                    orb.pickup_radius = player.pickup_radius
+        GameLogic.update_buffs(gs, DELTA_TIME)
         
-        PowerUpgrades.draw_buffs(screen, font, screen.get_width(), screen.get_height() , current_buffs)
+        PowerUpgrades.draw_buffs(screen, font, screen.get_width(), screen.get_height() , gs.current_buffs)
         # Draw inventory
-        player_inventory.draw_inventory(screen, font)
+        gs.player.player_inventory.draw_inventory(screen, font)
         # Draw XP orbs
-        for orb in xp_orbs[:]:
-            if orb.check_collision_with_player(player):
-                orb.collected = True
-                xp_orbs.remove(orb)
-                player_inventory.add_item("XP", orb.value) #copy paste this line about 10 times for easy debug/testing
-
-                sounds["OrbPickup"].play()
-                if (player_inventory.get_quantity("XP") >= 10 and player_inventory.level < 10):
-                    player_inventory.level = player_inventory.level + 1
-                    player_inventory.remove_item("XP", 10)
-                    #logic for leveling up here
-                    sounds["Levelup"].play()
-                    pause_start_time = pygame.time.get_ticks()
-                    pygame.display.flip()  # Show the last game frame
-                    PowerUpgrades.open_levelup_screen(screen, player, PowerUpgrades.apply_upgrade, font, screen.get_width(), screen.get_height())
-                    clock.tick()  # Reset clock after pause
-                    DELTA_TIME = 0
-                    tile_map[tile_y][tile_x] = random.choice([0, 1])
-                    pause_duration = pygame.time.get_ticks() - pause_start_time
-                    game_start_time = game_start_time + pause_duration
-                    continue  # Skip the rest of the update this frame
-            else:
-                XPOrb.draw(orb, screen, camera_x, camera_y)\
+        GameLogic.handle_xp_orbs(gs, screen, camera_x, camera_y, font, clock, sounds, tile_x, tile_y)
         # Draw health orbs
-        for orb in health_orbs[:]:
-            if orb.check_collision_with_player(player):
-                orb.collected = True
-                health_orbs.remove(orb)
-                player.gain_health(orb.value)
-            else:
-                orb.draw(screen, camera_x, camera_y)
+        GameLogic.handle_health_orbs(gs, screen, camera_x, camera_y)
 
         # Combat system
-        shot_fired, last_shot_time = shoot_at_nearest_zombie(player, zombies, bullets, current_time, 
-                                                            last_shot_time, SHOT_COOLDOWN)
+        shot_fired, gs.last_shot_time = shoot_at_nearest_zombie(gs.player, gs.zombies, gs.bullets, current_time, 
+                                                            gs.last_shot_time, SHOT_COOLDOWN)
         sounds["Shoot"].play() if shot_fired else None
 
-        update_bullets(bullets, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
-        check_bullet_zombie_collisions(player, bullets, zombies,xp_orbs,health_orbs)
+        update_bullets(gs.bullets, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+        check_bullet_zombie_collisions(gs.player, gs.bullets, gs.zombies,gs.xp_orbs,gs.health_orbs)
         # Spawning system
-        last_spawn_time = continuous_spawn_system(player.pos, zombies, current_time, last_spawn_time, 
-                                                game_start_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
-                                                DIFFICULTY_INCREASE_INTERVAL, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT,player_inventory)
+        gs.last_spawn_time = continuous_spawn_system(gs.player.pos, gs.zombies, current_time, gs.last_spawn_time, 
+                                                gs.game_start_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
+                                                DIFFICULTY_INCREASE_INTERVAL, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT,gs.player_inventory)
         # Update zombies
-        for zombie in zombies:
-            zombie.move_towards_player(player.pos, DELTA_TIME)
-            if zombie.check_collision_with_player(player):
-                zombie.attack_player(player, current_time)
+        for zombie in gs.zombies:
+            zombie.move_towards_player(gs.player.pos, DELTA_TIME)
+            if zombie.check_collision_with_player(gs.player):
+                zombie.attack_player(gs.player, current_time)
             
             # Check if this is a ranged zombie and if it can shoot
             if hasattr(zombie, 'shoot_at_player'):  # Check if it's a RangedZombie
-                projectile = zombie.shoot_at_player(player.pos, current_time)
+                projectile = zombie.shoot_at_player(gs.player.pos, current_time)
                 if projectile:
                     projectile.creation_time = current_time
-                    zombie_projectiles.append(projectile)
+                    gs.zombie_projectiles.append(projectile)
         
         # Update zombie projectiles
-        for projectile in zombie_projectiles[:]:
+        for projectile in gs.zombie_projectiles[:]:
             projectile.update(DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, current_time)
             if not projectile.active:
-                zombie_projectiles.remove(projectile)
-            elif projectile.check_collision_with_player(player):
-                player.take_damage(projectile.damage)
+                gs.zombie_projectiles.remove(projectile)
+            elif projectile.check_collision_with_player(gs.player):
+                gs.player.take_damage(projectile.damage)
                 projectile.active = False
-                zombie_projectiles.remove(projectile)
+                gs.zombie_projectiles.remove(projectile)
         
         # Render all game objects
-        render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
+        render_game_objects(screen, gs.player, gs.zombies,gs.bullets, sprites, camera_x, camera_y)
         
         # Draw zombie projectiles
-        for projectile in zombie_projectiles:
+        for projectile in gs.zombie_projectiles:
             projectile.draw(screen, camera_x, camera_y, sprites["zombie_spit"])
         
         # Draw UI
-        draw_status_bars(screen, font, player, player_inventory)
-        draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
-                    game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
-                    last_spawn_time)
+        draw_status_bars(screen, font, gs.player, gs.player_inventory)
+        draw_game_ui(screen, font, gs.player, gs.zombies, gs.bullets, current_time, gs.last_shot_time, SHOT_COOLDOWN,
+                    gs.game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
+                    gs.last_spawn_time)
         
         # Handle game over
         
         # Player movements
-        if not paused:
-            is_game_over = draw_game_over_screen(screen, font, player)
+        if not gs.paused:
+            is_game_over = draw_game_over_screen(screen, font, gs.player)
             keys = pygame.key.get_pressed()
             # Handle input
-            should_quit = handle_player_input(keys, player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+            should_quit = handle_player_input(keys, gs.player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 
             if should_quit:
-                running = False
+                gs.running = False
         # Update display
         pygame.display.flip()
 
