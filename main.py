@@ -33,8 +33,10 @@ DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 
 #todo: change zombie spawn based on difficulty not level, add upper bounds for health, remove prints, more sounds?(zombie death), start screen, pause screen, game over screen(stats like kills and time), orbs getting sucked to player for visual clarity kappa
 def main():
+    # Initialization 
     pygame.init()
     pygame.mixer.init() #sounds
+
     info = pygame.display.Info()
     SCREEN_WIDTH = info.current_w
     SCREEN_HEIGHT = info.current_h
@@ -42,7 +44,8 @@ def main():
     pygame.display.set_caption("Zombie Survival Game")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 36,)
-    # Load sprites
+
+    # Load assets
     sprites = {
         "player": pygame.transform.scale(pygame.image.load("assets/PlayerSprite.png"), (64, 64)),
         "walker_zombie": pygame.transform.scale(pygame.image.load("assets/WalkerZombieSprite.png"), (64, 64)),
@@ -58,61 +61,48 @@ def main():
         "OrbPickup": pygame.mixer.Sound("assets/mixkit_OrbPickup.wav")
     }
 
+    # Game State Setup
     gs = GameState()
     gs.tile_map = MG.generate_tile_map()
     # Game world setup
     MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
     MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
-
-    # Game configuration constants
-    #screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
-    # Camera variables
-    camera_x = 0
-    camera_y = 0
-    # Offset to draw the tile map centered on screen
-    map_offset_x = (screen.get_width() - MAP_PIXEL_WIDTH) // 2
-    map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
-    # Initialize player in the center of the screen
     player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-     
+
     gs.player = Player("Jared", PLAYER_HEALTH,PLAYER_MAX_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
 
     gs.player.player_inventory = PlayerInventory()
 
-    # Spawn initial zombies around the map
     GameLogic.initial_zomebie_spawn(gs, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
     
-    DELTA_TIME = 0
     gs.game_start_time = pygame.time.get_ticks()
 
+
+    DELTA_TIME = 0
     # Main game loop
     while gs.running:
+        screen.fill("black") #clear last frame with black background
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gs.running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    # Only allow pausing if player is alive
-                    if gs.player.health > 0:
-                        if not gs.paused:
-                            gs.paused = True
-                            gs.pause_start_time = pygame.time.get_ticks()
-                        else:
-                            gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
-                            gs.game_start_time += gs.pause_duration
-                            gs.paused = False
-        # Clear screen
-        screen.fill("black")
-
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and gs.player.health > 0:
+            # Only allow pausing if player is alive
+                if not gs.paused:
+                    gs.paused = True
+                    gs.pause_start_time = pygame.time.get_ticks()
+                else:
+                    gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
+                    gs.game_start_time += gs.pause_duration
+                    gs.paused = False
+        #pause menu
         if gs.paused:
-
             camera_x, camera_y = update_camera(gs.player.pos, screen.get_width(), screen.get_height())
             map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
             MG.draw_tile_map(screen, gs.tile_map, map_offset_x, map_offset_y)
             render_game_objects(screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
-
             menu_choice = draw_pause_menu(screen, font)
+
             if menu_choice == "resume":
                 gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
                 gs.game_start_time += gs.pause_duration
@@ -124,27 +114,28 @@ def main():
             clock.tick(FPS)  # Maintain frame rate
             continue  # Skip the rest of the loop if paused
 
-        # Get current time
+        # Time and camera updates
         current_time = pygame.time.get_ticks()
-        # Update camera
         camera_x, camera_y = update_camera(gs.player.pos, screen.get_width(), screen.get_height())
         map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
         
+
         # Draw tile map
         MG.draw_tile_map(screen, gs.tile_map, map_offset_x, map_offset_y)
-        tile_x = int(gs.player.pos[0] // MG.TILE_SIZE)
-        tile_y = int(gs.player.pos[1] // MG.TILE_SIZE)
-        GameLogic.on_shrine_check(gs.player, MG, sounds, gs.tile_map, gs.xp_orbs, gs.player_inventory, gs.current_buffs, screen, font, clock, gs.game_start_time, tile_x, tile_y)
-
+        
+        # Game Updates
+        GameLogic.on_shrine_check(gs.player, MG, sounds, gs.tile_map, gs.xp_orbs, gs.player_inventory, gs.current_buffs, screen, font, clock, gs.game_start_time)
         GameLogic.update_buffs(gs, DELTA_TIME)
         
         PowerUpgrades.draw_buffs(screen, font, screen.get_width(), screen.get_height() , gs.current_buffs)
         # Draw inventory
         gs.player.player_inventory.draw_inventory(screen, font)
         # Draw XP orbs
-        GameLogic.handle_xp_orbs(gs, screen, camera_x, camera_y, font, clock, sounds, tile_x, tile_y)
+        GameLogic.handle_xp_orbs(gs,MG, screen, camera_x, camera_y, font, clock, sounds)
         # Draw health orbs
         GameLogic.handle_health_orbs(gs, screen, camera_x, camera_y)
+
+
 
         # Combat system
         shot_fired, gs.last_shot_time = shoot_at_nearest_zombie(gs.player, gs.zombies, gs.bullets, current_time, 

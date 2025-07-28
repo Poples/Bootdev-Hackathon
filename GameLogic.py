@@ -29,11 +29,15 @@ def update_buffs(gs, DELTA_TIME):
             gs.player.pickup_radius = gs.player.pickup_radius - 5
             for orb in gs.xp_orbs:
                 orb.pickup_radius = gs.player.pickup_radius
-
-def on_shrine_check(player,MG,sounds, tile_map, xp_orbs, player_inventory, current_buffs, screen, font, clock, game_start_time,tile_x, tile_y):
+def get_tile_x_y(player, MG):
+    tile_x = int(player.pos[0] // MG.TILE_SIZE)
+    tile_y = int(player.pos[1] // MG.TILE_SIZE)
+    return tile_x, tile_y
+def on_shrine_check(player,MG,sounds, tile_map, xp_orbs, player_inventory, current_buffs, screen, font, clock, game_start_time):
     # Handle tile pickup logic
         
-        
+        tile_x, tile_y = get_tile_x_y(player, MG)
+
         has_picked_up = set() # Set to track which upgrade tiles have been picked up
 
 
@@ -69,7 +73,8 @@ def on_shrine_check(player,MG,sounds, tile_map, xp_orbs, player_inventory, curre
                     pause_duration = pygame.time.get_ticks() - pause_start_time
                     game_start_time = game_start_time + pause_duration
 
-def handle_xp_orbs(gs, screen, camera_x, camera_y, font, clock, sounds, tile_x, tile_y):
+def handle_xp_orbs(gs,MG, screen, camera_x, camera_y, font, clock, sounds):
+    tile_x, tile_y = get_tile_x_y(gs.player, MG)
     for orb in gs.xp_orbs[:]:
             if orb.check_collision_with_player(gs.player):
                 orb.collected = True
