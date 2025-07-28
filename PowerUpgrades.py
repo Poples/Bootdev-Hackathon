@@ -60,7 +60,7 @@ def apply_upgrade(player, upgrade_type):
     if upgrade_type == "Fire Rate Up":
         player.gain_atk_speed(0.90)
     if upgrade_type == "Extra Health":
-        player.gain_health(50)
+        player.gain_max_health(25)
     if upgrade_type == "Speed Boost":
         player.gain_move_speed(1.05)
 
@@ -131,7 +131,7 @@ def draw_buffs(screen, FONT, screen_width, screen_height,buffs):
     for buff in buffs:
         buff_name, time_left = buff
         text_surface = FONT.render(f"{buff_name}: {time_left:.1f}s", True, (255, 255, 0))
-        screen.blit(text_surface, (screen_width - 250, screen_height - 30 * (buffs.index(buff) + 1)))
+        screen.blit(text_surface, (screen_width - 250, 30 * (buffs.index(buff) + 1)))
 
 def reset_player_buffs(player):
     player.speed = main.PLAYER_SPEED

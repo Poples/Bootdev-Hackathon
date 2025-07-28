@@ -11,7 +11,7 @@ def draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot
     zombie_count_text = font.render(f"Zombies: {len(zombies)}", True, (255, 255, 255))
     screen.blit(zombie_count_text, (10, screen.get_height() - 70))
     
-    bullet_count_text = font.render(f"Bullets: {len(bullets)}", True, (255, 255, 0))
+    bullet_count_text = font.render(f"attack speed: {player.atk_speed}", True, (255, 255, 0))
     screen.blit(bullet_count_text, (10, screen.get_height() - 100))
 
     time_since_shot = current_time - last_shot_time
@@ -66,3 +66,33 @@ def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_
         
     
     return False  # Don't quit game
+
+
+def draw_status_bars(screen, font, player, player_inventory):
+    # Constants
+    bar_width = 200
+    bar_height = 20
+    spacing = 400
+    top_margin = 10
+    screen_width = screen.get_width()
+
+    # Health bar
+    #health_ratio = player.health / player.max_health
+    #health_bar_rect = pygame.Rect(screen_width // 2 - bar_width - spacing, top_margin, bar_width, bar_height)
+    #pygame.draw.rect(screen, (100, 0, 0), health_bar_rect)  # Dark red background
+    #pygame.draw.rect(screen, (255, 0, 0), (health_bar_rect.x, health_bar_rect.y, bar_width * health_ratio, bar_height))
+#
+    ## Health label
+    #health_text = font.render("Health", True, (255, 255, 255))
+    #screen.blit(health_text, (health_bar_rect.centerx - health_text.get_width() // 2, health_bar_rect.y + bar_height + 2))
+
+    # XP bar
+    xp = player_inventory.get_quantity("XP")
+    xp_ratio = min(xp / 10, 1)
+    xp_bar_rect = pygame.Rect(screen_width // 2 - spacing, top_margin, bar_width, bar_height)
+    pygame.draw.rect(screen, (50, 0, 50), xp_bar_rect)  # Dark purple background
+    pygame.draw.rect(screen, (160, 32, 240), (xp_bar_rect.x, xp_bar_rect.y, bar_width * xp_ratio, bar_height))
+
+    # XP label
+    xp_text = font.render("XP", True, (255, 255, 255))
+    screen.blit(xp_text, (xp_bar_rect.centerx - xp_text.get_width() // 2, xp_bar_rect.y + bar_height + 2))

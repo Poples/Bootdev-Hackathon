@@ -9,11 +9,12 @@ class Unit:
         
 
 class Player(Unit):
-    def __init__(self, name, health, move_speed, atk_speed, player_image, player_start_pos):
+    def __init__(self, name, health,max_health, move_speed, atk_speed, player_image, player_start_pos):
         self.image = player_image
         self.img_rect = self.image.get_rect(center=player_start_pos)
         super().__init__(name, self.img_rect[0], self.img_rect[1])
         self.movement = pygame.math.Vector2(0,0)
+        self.max_health = max_health
         self.health = health
         self.width = self.img_rect.width
         self.height = self.img_rect.height
@@ -30,6 +31,9 @@ class Player(Unit):
         ] # needs help
 
     # attribute modifications
+    def gain_max_health(self, max_health_gained):
+        self.max_health += max_health_gained
+
     def take_damage(self, damage):
         self.health -= damage
 

@@ -9,7 +9,7 @@ from PlayerInventory import PlayerInventory, XPOrb
 from Units import Player, Zombie
 from Combat import (shoot_at_nearest_zombie, update_bullets, check_bullet_zombie_collisions, 
                    continuous_spawn_system)
-from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input
+from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input, draw_status_bars
 from Camera import update_camera, get_map_offset , get_screen_position
 from GameRenderer import render_game_objects
 
@@ -22,6 +22,7 @@ FPS = 60
 
 PLAYER_SPEED = 5
 PLAYER_HEALTH = 100
+PLAYER_MAX_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 PLAYER_PICKUP_RADIUS = 5
 
@@ -30,7 +31,7 @@ BASE_SPAWN_INTERVAL = 3000  # 3 seconds initially in milliseconds
 SPAWN_RATE_INCREASE = 0.95  # Multiply spawn interval by this each time (makes spawning faster)
 DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 
-#todo: sound, start screen, pause screen, game over screen, orbs getting sucked to player for visual clarity kappa
+#todo: change zombie spawn based on difficulty not level, add upper bounds for health, remove prints, more sounds?(zombie death), start screen, pause screen, game over screen(stats like kills and time), orbs getting sucked to player for visual clarity kappa
 def main():
     pygame.init()
     pygame.mixer.init() #sounds
@@ -75,7 +76,7 @@ def main():
     map_offset_y = (screen.get_height() - MAP_PIXEL_HEIGHT) // 2
     # Initialize player in the center of the screen
     player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-    player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
+    player = Player("Jared", PLAYER_HEALTH,PLAYER_MAX_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
     
     player_inventory = PlayerInventory()
     player.inventory = player_inventory 
@@ -176,7 +177,8 @@ def main():
             if orb.check_collision_with_player(player):
                 orb.collected = True
                 xp_orbs.remove(orb)
-                player_inventory.add_item("XP", orb.value)
+                player_inventory.add_item("XP", orb.value) #copy paste this line about 10 times for easy debug/testing
+
                 sounds["OrbPickup"].play()
                 if (player_inventory.get_quantity("XP") >= 10 and player_inventory.level < 10):
                     player_inventory.level = player_inventory.level + 1
@@ -222,6 +224,7 @@ def main():
         # Render all game objects
         render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
         # Draw UI
+        draw_status_bars(screen, font, player, player_inventory)
         draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
                     game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
                     last_spawn_time)
