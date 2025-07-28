@@ -23,10 +23,17 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 | Key        | Action         |
 |------------|----------------|
 | `WASD`     | Move           |
+|------------|----------------|
+| `Esc`      | Pause Game     |
 
 ---
 
 ## 🔧 Installation
+
+- Download the "download.zip" file.
+- Right click > Extract all...
+- Go into the "zombiegame" directory
+- Run "ZombieSurvivalGame.exe
 
 ---
 
@@ -64,10 +71,3 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 - **Art Assets:** Todd
 - **Sound & Music:** mixkit.co
 - **Hackathon:** Boot.dev
-
----
-
-## 📜 License
-
-This project is licensed under the **TODO: License Name (e.g., MIT, GPL-3.0)** license.  
-See the [`LICENSE`](LICENSE) file for details.
