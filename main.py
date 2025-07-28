@@ -1,4 +1,5 @@
 # main.py - Main game loop and initialization
+from logging import info
 import pygame
 import sys
 import random
@@ -6,18 +7,19 @@ import math
 
 import MapGeneration as MG, PowerUpgrades
 from PlayerInventory import PlayerInventory, XPOrb
-from Units import Player, Zombie
+from Units import Player, Zombie, RangedZombie
 from Combat import (shoot_at_nearest_zombie, update_bullets, check_bullet_zombie_collisions, 
                    continuous_spawn_system)
-from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input, draw_status_bars
+from GameUI import draw_game_ui, draw_game_over_screen, handle_player_input, draw_pause_menu, draw_status_bars
 from Camera import update_camera, get_map_offset , get_screen_position
 from GameRenderer import render_game_objects
 
 # =======================
 # Constants
 # =======================
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+
+
+
 FPS = 60
 
 PLAYER_SPEED = 5
@@ -35,16 +37,21 @@ DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 def main():
     pygame.init()
     pygame.mixer.init() #sounds
+    info = pygame.display.Info()
+    SCREEN_WIDTH = info.current_w
+    SCREEN_HEIGHT = info.current_h
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Zombie Survival Game")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 36,)
     # Load sprites
     sprites = {
-        "player": pygame.image.load("assets/PlayerSprite.png"),
-        "walker_zombie": pygame.image.load("assets/WalkerZombieSprite.png"),
-        "tank_zombie": pygame.image.load("assets/TankZombieSprite.png"),
-        "bullet_img": pygame.image.load("assets/BulletSprite.png"),
+        "player": pygame.transform.scale(pygame.image.load("assets/PlayerSprite.png"), (64, 64)),
+        "walker_zombie": pygame.transform.scale(pygame.image.load("assets/WalkerZombieSprite.png"), (64, 64)),
+        "tank_zombie": pygame.transform.scale(pygame.image.load("assets/TankZombieSprite.png"), (64, 64)),
+        "bullet_img": pygame.transform.scale(pygame.image.load("assets/BulletSprite.png"), (48, 48)),
+        "ranged_zombie": pygame.transform.scale(pygame.image.load("assets/RangedZombieSprite.png"), (64, 64)),
+        "zombie_spit": pygame.transform.scale(pygame.image.load("assets/RangedZombieSpitSprite.png"), (64, 64)),
     }
     sounds = {
         "Shoot": pygame.mixer.Sound("assets/mixkit_Gunshot.mp3"),
@@ -60,6 +67,7 @@ def main():
     
     zombies = []
     bullets = []
+    zombie_projectiles = []
     xp_orbs = []
     health_orbs = []
     current_buffs = []
@@ -84,7 +92,7 @@ def main():
     for i in range(5):  # Start with 5 zombies
         # Spawn zombies in a circle around the player at a safe distance
         angle = (i / 5) * 2 * math.pi
-        spawn_distance = 300  # pixels away from player
+        spawn_distance = 600  # pixels away from player
         zombie_x = player.pos[0] + math.cos(angle) * spawn_distance
         zombie_y = player.pos[1] + math.sin(angle) * spawn_distance
         # Ensure zombies spawn within map bounds
@@ -96,6 +104,7 @@ def main():
     last_spawn_time = 0
     game_start_time = 0
     running = True
+    paused = False
     DELTA_TIME = 0
     game_start_time = pygame.time.get_ticks()
 
@@ -105,8 +114,39 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # Only allow pausing if player is alive
+                    if player.health > 0:
+                        if not paused:
+                            paused = True
+                            pause_start_time = pygame.time.get_ticks()
+                        else:
+                            pause_duration = pygame.time.get_ticks() - pause_start_time
+                            game_start_time += pause_duration
+                            paused = False
         # Clear screen
         screen.fill("black")
+
+        if paused:
+
+            camera_x, camera_y = update_camera(player.pos, screen.get_width(), screen.get_height())
+            map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
+            MG.draw_tile_map(screen, tile_map, map_offset_x, map_offset_y)
+            render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
+
+            menu_choice = draw_pause_menu(screen, font)
+            if menu_choice == "resume":
+                pause_duration = pygame.time.get_ticks() - pause_start_time
+                game_start_time += pause_duration
+                paused = False
+            elif menu_choice == "quit":
+                running = False
+
+            pygame.display.flip()  # Update the display
+            clock.tick(FPS)  # Maintain frame rate
+            continue  # Skip the rest of the loop if paused
+
         # Get current time
         current_time = pygame.time.get_ticks()
         # Update camera
@@ -221,8 +261,31 @@ def main():
             zombie.move_towards_player(player.pos, DELTA_TIME)
             if zombie.check_collision_with_player(player):
                 zombie.attack_player(player, current_time)
+            
+            # Check if this is a ranged zombie and if it can shoot
+            if hasattr(zombie, 'shoot_at_player'):  # Check if it's a RangedZombie
+                projectile = zombie.shoot_at_player(player.pos, current_time)
+                if projectile:
+                    projectile.creation_time = current_time
+                    zombie_projectiles.append(projectile)
+        
+        # Update zombie projectiles
+        for projectile in zombie_projectiles[:]:
+            projectile.update(DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, current_time)
+            if not projectile.active:
+                zombie_projectiles.remove(projectile)
+            elif projectile.check_collision_with_player(player):
+                player.take_damage(projectile.damage)
+                projectile.active = False
+                zombie_projectiles.remove(projectile)
+        
         # Render all game objects
         render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y)
+        
+        # Draw zombie projectiles
+        for projectile in zombie_projectiles:
+            projectile.draw(screen, camera_x, camera_y, sprites["zombie_spit"])
+        
         # Draw UI
         draw_status_bars(screen, font, player, player_inventory)
         draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, SHOT_COOLDOWN,
@@ -230,14 +293,16 @@ def main():
                     last_spawn_time)
         
         # Handle game over
-        is_game_over = draw_game_over_screen(screen, font, player)
+        
         # Player movements
-        keys = pygame.key.get_pressed()
-        # Handle input
-        should_quit = handle_player_input(keys, player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
+        if not paused:
+            is_game_over = draw_game_over_screen(screen, font, player)
+            keys = pygame.key.get_pressed()
+            # Handle input
+            should_quit = handle_player_input(keys, player, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 
-        if should_quit:
-            running = False
+            if should_quit:
+                running = False
         # Update display
         pygame.display.flip()
 

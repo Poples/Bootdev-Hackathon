@@ -10,16 +10,15 @@ def render_game_objects(screen, player, zombies, bullets, sprites, camera_x, cam
         zombie_screen_x = zombie.pos[0] - camera_x
         zombie_screen_y = zombie.pos[1] - camera_y
         if zombie.zombietype == "WalkerZombie":
-            screen.blit(sprites["walker_zombie"], (zombie_screen_x - zombie.width//2, zombie_screen_y - zombie.height//2))
+            screen.blit(sprites["walker_zombie"], (zombie_screen_x - 32, zombie_screen_y - 32))
         elif zombie.zombietype == "TankZombie":
-            screen.blit(sprites["tank_zombie"], (zombie_screen_x - zombie.width//2, zombie_screen_y - zombie.height//2))
+            screen.blit(sprites["tank_zombie"], (zombie_screen_x - 32, zombie_screen_y - 32))
+        elif zombie.zombietype == "RangedZombie":
+            screen.blit(sprites["ranged_zombie"], (zombie_screen_x - 32, zombie_screen_y - 32))
         else:
-            # Default case if zombie type is unknown
-            screen.blit(sprites["walker_zombie"], (zombie_screen_x - zombie.width//2, zombie_screen_y - zombie.height//2))
+            screen.blit(sprites["walker_zombie"], (zombie_screen_x - 32, zombie_screen_y - 32))
     
     for bullet in bullets:
         bullet_screen_x = bullet.pos[0] - camera_x
         bullet_screen_y = bullet.pos[1] - camera_y
-        
-        screen.blit(sprites["bullet_img"], (bullet_screen_x - sprites["bullet_img"].get_width()//2, 
-                                bullet_screen_y - sprites["bullet_img"].get_height()//2))
+        screen.blit(sprites["bullet_img"], (bullet_screen_x - 24, bullet_screen_y - 24))

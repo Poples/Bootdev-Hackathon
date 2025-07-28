@@ -46,7 +46,7 @@ def draw_game_over_screen(screen, font, player):
         return True
     return False
 
-def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over,):
+def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over):
 
     if is_game_over:
         if keys[pygame.K_ESCAPE]:
@@ -61,7 +61,7 @@ def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_
         if keys[pygame.K_w]:
             player.move_up()
         
-
+        # Apply normalized movement with boundary checking
         player.movement_normalization(MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
         
     
@@ -96,3 +96,31 @@ def draw_status_bars(screen, font, player, player_inventory):
     # XP label
     xp_text = font.render("XP", True, (255, 255, 255))
     screen.blit(xp_text, (xp_bar_rect.centerx - xp_text.get_width() // 2, xp_bar_rect.y + bar_height + 2))
+
+def draw_pause_menu(screen, font):
+
+    overlay = pygame.Surface((screen.get_width(), screen.get_height()))
+    overlay.set_alpha(128)
+    overlay.fill((0, 0, 0))
+    screen.blit(overlay, (0, 0))
+    
+    title_text = font.render("GAME PAUSED", True, (255, 255, 255))
+    resume_text = font.render("Press ESC to Resume", True, (255, 255, 255))
+    quit_text = font.render("Press Q to Quit", True, (255, 255, 255))
+    
+    screen_center_x = screen.get_width() // 2
+    screen_center_y = screen.get_height() // 2
+    
+    title_rect = title_text.get_rect(center=(screen_center_x, screen_center_y - 60))
+    resume_rect = resume_text.get_rect(center=(screen_center_x, screen_center_y))
+    quit_rect = quit_text.get_rect(center=(screen_center_x, screen_center_y + 40))
+    
+    screen.blit(title_text, title_rect)
+    screen.blit(resume_text, resume_rect)
+    screen.blit(quit_text, quit_rect)
+    
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_q]:
+        return "quit"
+    
+    return None
