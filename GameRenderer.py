@@ -4,7 +4,7 @@ import pygame
 def render_game_objects(screen, player, zombies, bullets, sprites, camera_x, camera_y):
     
     player_screen_x, player_screen_y = player.pos[0] - camera_x, player.pos[1] - camera_y
-    screen.blit(player.image, (player_screen_x, player_screen_y))
+    screen.blit(player.image, player.img_rect)
     
     for zombie in zombies:
         zombie_screen_x = zombie.pos[0] - camera_x

@@ -46,22 +46,23 @@ def draw_game_over_screen(screen, font, player):
         return True
     return False
 
-def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over, screen_rect):
+def handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over,):
 
     if is_game_over:
         if keys[pygame.K_ESCAPE]:
             return True  # Signal to quit game
     else:
         if keys[pygame.K_a]:
-            player.move_left(dt, MAP_PIXEL_WIDTH)
+            player.move_left()
         if keys[pygame.K_d]:
-            player.move_right(dt, MAP_PIXEL_WIDTH)
+            player.move_right()
         if keys[pygame.K_s]:
-            player.move_down(dt, MAP_PIXEL_HEIGHT)
+            player.move_down()
         if keys[pygame.K_w]:
-            player.move_up(dt, MAP_PIXEL_HEIGHT)
+            player.move_up()
         
-        #player.movement_normalization(screen_rect)
+
+        player.movement_normalization(MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
         
     
     return False  # Don't quit game
