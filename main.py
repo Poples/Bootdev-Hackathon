@@ -33,6 +33,7 @@ DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 #todo: sound, start screen, pause screen, game over screen, orbs getting sucked to player for visual clarity kappa
 def main():
     pygame.init()
+    pygame.mixer.init() #sounds
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Zombie Survival Game")
     clock = pygame.time.Clock()
@@ -43,7 +44,13 @@ def main():
         "walker_zombie": pygame.image.load("assets/WalkerZombieSprite.png"),
         "tank_zombie": pygame.image.load("assets/TankZombieSprite.png"),
         "bullet_img": pygame.image.load("assets/BulletSprite.png"),
-    }   
+    }
+    sounds = {
+        "Shoot": pygame.mixer.Sound("assets/mixkit_Gunshot.mp3"),
+        "Shrine": pygame.mixer.Sound("assets/mixkit_Shrine.wav"),
+        "Levelup": pygame.mixer.Sound("assets/mixkit_Levelup.wav"),
+        "OrbPickup": pygame.mixer.Sound("assets/mixkit_OrbPickup.wav")
+    }
     # Game world setup
     tile_map = MG.generate_tile_map()
     MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
@@ -128,7 +135,7 @@ def main():
 
                     for orb in xp_orbs[:]:
                         XPOrb.draw(orb, screen, camera_x, camera_y)
-
+                    sounds["Shrine"].play()
                     pause_start_time = pygame.time.get_ticks()
                     pygame.display.flip()  # Show the last game frame
                     if random.randint(1, 2) == 1:
@@ -170,11 +177,12 @@ def main():
                 orb.collected = True
                 xp_orbs.remove(orb)
                 player_inventory.add_item("XP", orb.value)
-
+                sounds["OrbPickup"].play()
                 if (player_inventory.get_quantity("XP") >= 10 and player_inventory.level < 10):
                     player_inventory.level = player_inventory.level + 1
                     player_inventory.remove_item("XP", 10)
                     #logic for leveling up here
+                    sounds["Levelup"].play()
                     pause_start_time = pygame.time.get_ticks()
                     pygame.display.flip()  # Show the last game frame
                     PowerUpgrades.open_levelup_screen(screen, player, PowerUpgrades.apply_upgrade, font, screen.get_width(), screen.get_height())
@@ -198,6 +206,8 @@ def main():
         # Combat system
         shot_fired, last_shot_time = shoot_at_nearest_zombie(player, zombies, bullets, current_time, 
                                                             last_shot_time, SHOT_COOLDOWN)
+        sounds["Shoot"].play() if shot_fired else None
+
         update_bullets(bullets, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
         check_bullet_zombie_collisions(player, bullets, zombies,xp_orbs,health_orbs)
         # Spawning system

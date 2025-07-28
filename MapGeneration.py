@@ -8,7 +8,7 @@ TILE_SIZE = 64
 tile_colors = {
     0: (34, 139, 34),   # grass
     1: (139, 69, 19),   # dirt
-    2: (0, 255, 255),   # upgrade station (cyan)
+    2: (128, 128, 128),   # upgrade station (cyan)
     3: (0, 0, 0)  # black for unknown tiles
 }
 # Load tree sprite once
@@ -37,7 +37,7 @@ def generate_tile_map():
             if row_index == 0 or row_index == TILE_MAP_SIZE - 1 or col_index == 0 or col_index == TILE_MAP_SIZE - 1:
                 tile = 3  # wall
             else:
-                roll = random.randint(1, 100)
+                roll = random.randint(1, 200)
                 if roll == 1:
                     tile = 2  # upgrade
                 else:
