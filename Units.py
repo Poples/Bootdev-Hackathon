@@ -6,13 +6,17 @@ class Unit:
     def __init__(self, name, pos_x, pos_y):
         self.name = name
         self.pos = [pos_x, pos_y]
+        
 
 class Player(Unit):
     def __init__(self, name, health, move_speed, pos_x, pos_y, atk_speed, player_image):
         super().__init__(name, pos_x, pos_y)
+        #self.movement = pygame.math.Vector2(0,0)
         self.health = health
         self.image = player_image
         self.width, self.height = self.image.get_size()
+        #self.rect = pygame.Rect(self.pos[0],self.pos[1], self.width, self.height)
+        #self.pos = pygame.math.Vector2(self.rect)
         self.speed = move_speed
         self.atk_speed = atk_speed
         self.__hit_box = [
@@ -22,25 +26,54 @@ class Player(Unit):
             self.pos[1] + (self.height * .5)
         ] # needs help
 
+    # attribute modifications
+    def take_damage(self, damage):
+        self.health -= damage
+
+    def gain_health(self, health_gained):
+        self.health += health_gained
+    
+    def gain_move_speed(self, inc_move_speed):
+        self.speed = self.speed * float(inc_move_speed)
+    
+    def gain_atk_speed(self, inc_atk_speed):
+        self.atk_speed = self.atk_speed * float(inc_atk_speed)
+
+    # Player Movement
     def move_left(self, dt, MAP_PIXEL_WIDTH):
+        #self.movement.x = -1
         new_x = self.pos[0] - self.speed * dt
+        print(new_x >= 0)
         if new_x >= 0:  # Check left boundary
             self.pos[0] = new_x
 
     def move_right(self, dt, MAP_PIXEL_WIDTH):
+        #self.movement.x = 1
         new_x = self.pos[0] + self.speed * dt
         if new_x <= MAP_PIXEL_WIDTH:  # Check right boundary
             self.pos[0] = new_x
 
     def move_up(self, dt, MAP_PIXEL_HEIGHT):
+        #self.movement.y = -1
         new_y = self.pos[1] - self.speed * dt
         if new_y >= 0:  # Check top boundary
             self.pos[1] = new_y
 
     def move_down(self, dt, MAP_PIXEL_HEIGHT):
+        #self.movement.y = 1
         new_y = self.pos[1] + self.speed * dt
         if new_y <= MAP_PIXEL_HEIGHT:  # Check bottom boundary
             self.pos[1] = new_y
+    
+    #def movement_normalization(self, screen_rect):
+        #if self.movement.length() > 0:
+            #print(screen_rect, self.rect)
+            #self.movement = self.movement.normalize() * self.speed
+            #self.rect.clamp_ip(screen_rect)
+            #self.pos += self.movement
+            
+            #self.movement = pygame.math.Vector2(0,0)
+
 
 class Zombie(Unit):
     def __init__(self, name, pos_x, pos_y, health=50, width=32, height=32, speed=50):
@@ -85,7 +118,7 @@ class Zombie(Unit):
     
     def attack_player(self, player, current_time):
         if current_time - self.last_damage_time >= self.damage_cooldown:
-            player.health -= self.damage
+            player.take_damage(self.damage)
             self.last_damage_time = current_time
             print(f"Zombie hit player for {self.damage} damage! Player health: {player.health}")
             return True

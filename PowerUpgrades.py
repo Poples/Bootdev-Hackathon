@@ -54,3 +54,9 @@ def apply_upgrade(player, upgrade_type):
     if hasattr(player, "inventory"):
         player.inventory.add_item(upgrade_type, 1)
     print(f"Upgrade added to inventory: {upgrade_type}")
+    if upgrade_type == "Fire Rate Up":
+        player.gain_atk_speed(0.90)
+    if upgrade_type == "Extra Health":
+        player.gain_health(50)
+    if upgrade_type == "Speed Boost":
+        player.gain_move_speed(1.05)

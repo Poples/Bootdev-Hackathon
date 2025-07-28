@@ -23,16 +23,16 @@ def find_nearest_zombie(player_pos, zombies):
     
     return nearest_zombie
 
-def shoot_at_nearest_zombie(player_pos, zombies, bullets, current_time, last_shot_time, shot_cooldown):
+def shoot_at_nearest_zombie(player, zombies, bullets, current_time, last_shot_time, shot_cooldown):
 
-    if current_time - last_shot_time < shot_cooldown:
+    if current_time - last_shot_time < shot_cooldown * player.atk_speed:
         return False, last_shot_time
     
-    nearest_zombie = find_nearest_zombie(player_pos, zombies)
+    nearest_zombie = find_nearest_zombie(player.pos, zombies)
     if nearest_zombie:
         target_x = nearest_zombie.pos[0]
         target_y = nearest_zombie.pos[1]
-        bullet = Bullet(player_pos[0], player_pos[1], target_x, target_y)
+        bullet = Bullet(player.pos[0], player.pos[1], target_x, target_y)
         bullets.append(bullet)
         last_shot_time = current_time
         return True, last_shot_time
