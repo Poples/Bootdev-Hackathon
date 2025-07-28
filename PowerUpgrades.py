@@ -9,16 +9,10 @@ BUTTON_SPACING = 40
 
 power_options = ["Speed Boost", "Extra Health", "Fire Rate Up"]
 
-def open_upgrade_screen(screen, player, apply_upgrade_callback, FONT, screen_width, screen_height):
+def open_levelup_screen(screen, player, apply_upgrade_callback, FONT, screen_width, screen_height):
     selected = False
     while not selected:
-        # Optional: draw a semi-transparent overlay instead of full clear
-        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-
-        screen.blit(overlay, (0,0))
-
-        draw_upgrade_options(screen, power_options, FONT, screen_width, screen_height)
-
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -33,6 +27,15 @@ def open_upgrade_screen(screen, player, apply_upgrade_callback, FONT, screen_wid
                         selected = True
                         break
         
+        # Optional: draw a semi-transparent overlay instead of full clear
+        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+
+        screen.blit(overlay, (0,0))
+
+        draw_upgrade_options(screen, power_options, FONT, screen_width, screen_height)
+
+        pygame.display.flip()
+
 def get_button_rect(index, screen_width, screen_height):
     total_width = 3 * BUTTON_WIDTH + 2 * BUTTON_SPACING
     start_x = (screen_width - total_width) // 2

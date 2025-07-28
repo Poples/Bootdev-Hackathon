@@ -59,7 +59,7 @@ def main():
     has_picked_up = set() # Set to track which upgrade tiles have been picked up
 
     # Game configuration constants
-    screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
+    #screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
     # Camera variables
     camera_x = 0
     camera_y = 0
@@ -177,7 +177,7 @@ def main():
                     #logic for leveling up here
                     pause_start_time = pygame.time.get_ticks()
                     pygame.display.flip()  # Show the last game frame
-                    PowerUpgrades.open_upgrade_screen(screen, player, PowerUpgrades.apply_upgrade, font, screen.get_width(), screen.get_height())
+                    PowerUpgrades.open_levelup_screen(screen, player, PowerUpgrades.apply_upgrade, font, screen.get_width(), screen.get_height())
                     clock.tick()  # Reset clock after pause
                     DELTA_TIME = 0
                     tile_map[tile_y][tile_x] = random.choice([0, 1])
