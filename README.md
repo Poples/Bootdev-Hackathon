@@ -23,7 +23,6 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 | Key        | Action         |
 |------------|----------------|
 | `WASD`     | Move           |
-|------------|----------------|
 | `Esc`      | Pause Game     |
 
 ---
