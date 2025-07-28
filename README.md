@@ -39,7 +39,7 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 
 ## 📸 Screenshots
 
-![Gameplay Screenshot 1](TODO:insert-link-or-path-to-screenshot1.png)  
+![Gameplay Screenshot 1](https://github.com/Poples/Bootdev-Hackathon/blob/main/Gameplay%20Screenshots/EarlyGameplay.png) 
 
 ---
 
@@ -51,13 +51,13 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 - [x] Basic player movement and auto-shooting
 - [x] Time-based scaling difficulty
 - [x] Game over on death condition
+- [x] Level-based enemy progression (1-3 walkers, 3-6 walkers/ranged, 6+ all types
+- [x] Additional enemy types: Ranged, Tank zombies
 
 ### In Progress/Next Steps
 - [ ] Player upgrade system using collected tokens
 - [ ] Player abilities: Increased attack speed, damage, movement speed, health
-- [ ] Additional enemy types: Ranged, Tank zombies
 - [ ] Refined scaling formulas and spawn rate increases
-- [ ] Level-based enemy progression (1-3 walkers, 3-6 walkers/ranged, 6+ all types)
 - [ ] Implement save/load system
 - [ ] Add leaderboard/high score tracking
 - [ ] Improve visual effects (e.g. explosions, particles)
