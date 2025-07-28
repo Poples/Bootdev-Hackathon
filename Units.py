@@ -9,14 +9,16 @@ class Unit:
         
 
 class Player(Unit):
-    def __init__(self, name, health, move_speed, pos_x, pos_y, atk_speed, player_image):
-        super().__init__(name, pos_x, pos_y)
-        #self.movement = pygame.math.Vector2(0,0)
-        self.health = health
+    def __init__(self, name, health, move_speed, atk_speed, player_image, player_start_pos):
         self.image = player_image
-        self.width, self.height = self.image.get_size()
-        #self.rect = pygame.Rect(self.pos[0],self.pos[1], self.width, self.height)
-        #self.pos = pygame.math.Vector2(self.rect)
+        self.img_rect = self.image.get_rect(center=player_start_pos)
+        super().__init__(name, self.img_rect[0], self.img_rect[1])
+        self.movement = pygame.math.Vector2(0,0)
+        self.health = health
+        self.width = self.img_rect.width
+        self.height = self.img_rect.height
+        self.rect = pygame.Rect(self.pos[0],self.pos[1], self.width, self.height)
+        self.pos = pygame.math.Vector2(self.pos)
         self.speed = move_speed
         self.atk_speed = atk_speed
         self.__hit_box = [
@@ -40,39 +42,29 @@ class Player(Unit):
         self.atk_speed = self.atk_speed * float(inc_atk_speed)
 
     # Player Movement
-    def move_left(self, dt, MAP_PIXEL_WIDTH):
-        #self.movement.x = -1
-        new_x = self.pos[0] - self.speed * dt
-        print(new_x >= 0)
-        if new_x >= 0:  # Check left boundary
-            self.pos[0] = new_x
+    def move_left(self):
+        self.movement.x = -1
 
-    def move_right(self, dt, MAP_PIXEL_WIDTH):
-        #self.movement.x = 1
-        new_x = self.pos[0] + self.speed * dt
-        if new_x <= MAP_PIXEL_WIDTH:  # Check right boundary
-            self.pos[0] = new_x
+    def move_right(self):
+        self.movement.x = 1
 
-    def move_up(self, dt, MAP_PIXEL_HEIGHT):
-        #self.movement.y = -1
-        new_y = self.pos[1] - self.speed * dt
-        if new_y >= 0:  # Check top boundary
-            self.pos[1] = new_y
+    def move_up(self):
+        self.movement.y = -1
 
-    def move_down(self, dt, MAP_PIXEL_HEIGHT):
-        #self.movement.y = 1
-        new_y = self.pos[1] + self.speed * dt
-        if new_y <= MAP_PIXEL_HEIGHT:  # Check bottom boundary
-            self.pos[1] = new_y
+    def move_down(self):
+        self.movement.y = 1
     
-    #def movement_normalization(self, screen_rect):
-        #if self.movement.length() > 0:
-            #print(screen_rect, self.rect)
-            #self.movement = self.movement.normalize() * self.speed
-            #self.rect.clamp_ip(screen_rect)
-            #self.pos += self.movement
-            
-            #self.movement = pygame.math.Vector2(0,0)
+    ### Normailzes diagonal movement while keeping players within mapS
+    def movement_normalization(self, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
+        map_rect = pygame.Rect(0, 0, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT) #Gets map bounderies
+        if self.movement.length() > 0:
+            self.movement = self.movement.normalize() * self.speed
+        self.rect.x += self.movement.x # moves player's rectangle sides
+        self.rect.y += self.movement.y # moves player's rectangle top/bot
+        self.rect.clamp_ip(map_rect)
+        #self.pos += self.movement
+        self.pos = pygame.math.Vector2(self.rect.center)
+        self.movement = pygame.math.Vector2(0,0)
 
 
 class Zombie(Unit):

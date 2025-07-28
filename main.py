@@ -30,8 +30,8 @@ camera_x = 0
 camera_y = 0
 
 # Game configuration constants
-screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
-PLAYER_SPEED = 200
+#screen_rect = pygame.Rect(0, 0, screen.get_width(), screen.get_height()) #getting screen as rectangle for clamp
+PLAYER_SPEED = 5
 PLAYER_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 SHOT_COOLDOWN = 2000 # 2 seconds in milliseconds
@@ -47,7 +47,7 @@ xp_img = pygame.image.load("assets/XPOrbSprite.png")
 
 # Initialize player
 player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
-player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, player_start_pos[0], player_start_pos[1], PLAYER_ATK_SPEED, player_img)
+player = Player("Jared", PLAYER_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, player_img, player_start_pos)
 
 # Game object lists
 zombies = []
@@ -186,7 +186,7 @@ while running:
     keys = pygame.key.get_pressed()
 
     # Handle input
-    should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over, screen_rect)
+    should_quit = handle_player_input(keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over)
 
     if should_quit:
         running = False
