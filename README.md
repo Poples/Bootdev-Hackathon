@@ -39,7 +39,7 @@ A fast-paced, top-down swarm-style survival game built with Python and Pygame. F
 
 ## 📸 Screenshots
 
-![Gameplay Screenshot 1](https://github.com/Poples/Bootdev-Hackathon/blob/main/Gameplay%20Screenshots/EarlyGameplay.png) 
+![Gameplay Screenshot 1](https://github.com/Poples/Bootdev-Hackathon/blob/main/Gameplay%20Screenshots/VeryEarlyGameplay.png) 
 
 ---
 
