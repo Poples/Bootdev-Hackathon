@@ -10,8 +10,7 @@ from GameUI import GameUI
 import MapGeneration as MG, PowerUpgrades
 from PlayerInventory import PlayerInventory, XPOrb
 from Units import Player, Zombie, RangedZombie
-from Combat import (shoot_at_nearest_zombie, check_bullet_zombie_collisions, 
-                   continuous_spawn_system)
+from Combat import (shoot_at_nearest_zombie,continuous_spawn_system)
 from Camera import update_camera, get_map_offset , get_screen_position
 
 FPS = 60
