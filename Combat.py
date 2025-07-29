@@ -23,10 +23,10 @@ def find_nearest_zombie(player_pos, zombies):
     
     return nearest_zombie
 
-def shoot_at_nearest_zombie(GameState, current_time, shot_cooldown):
+def shoot_at_nearest_zombie(GameState, current_time, shot_cooldown,sounds):
 
     if current_time - GameState.last_shot_time < shot_cooldown * GameState.player.atk_speed:
-        return False, GameState.last_shot_time
+        return GameState.last_shot_time
     
     nearest_zombie = find_nearest_zombie(GameState.player.pos, GameState.zombies)
     if nearest_zombie:
@@ -35,34 +35,11 @@ def shoot_at_nearest_zombie(GameState, current_time, shot_cooldown):
         bullet = Bullet(GameState.player.pos[0], GameState.player.pos[1], target_x, target_y)
         GameState.bullets.append(bullet)
         GameState.last_shot_time = current_time
-        return True, GameState.last_shot_time
+        sounds["Shoot"].play()
+        return GameState.last_shot_time
     
-    return False, GameState.last_shot_time
+    return GameState.last_shot_time
 
-def update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
-
-    for bullet in bullets[:]:  # Use slice copy to allow removal during iteration
-        bullet.update(dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
-        if not bullet.active:
-            bullets.remove(bullet)
-
-def check_bullet_zombie_collisions(GameState):
-
-    for bullet in GameState.bullets[:]:
-        for zombie in GameState.zombies[:]:
-            if bullet.check_collision_with_zombie(zombie):
-                zombie.health -= bullet.damage
-                bullet.active = False
-                GameState.bullets.remove(bullet)
-                
-                if zombie.health <= 0:
-                    GameState.zombies.remove(zombie)
-                    if(random.randint(1, 10) == 1):
-                        GameState.health_orbs.append(HealthOrb(zombie.pos[0], zombie.pos[1], GameState.player))
-                    else:
-                        GameState.xp_orbs.append(XPOrb(zombie.pos[0], zombie.pos[1], GameState.player))
-                    print(f"Zombie killed! Remaining zombies: {len(GameState.zombies)}")
-                break
 
 def spawn_zombie_around_player(zombietype,player_pos, zombies_count, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, min_distance=500, max_distance=1000):
 

@@ -3,7 +3,7 @@ import random
 import PowerUpgrades
 import math
 from Units import Zombie
-from PlayerInventory import XPOrb
+from PlayerInventory import XPOrb, HealthOrb
 
 
 def initial_zomebie_spawn(gs, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
@@ -33,9 +33,9 @@ def get_tile_x_y(player, MG):
     tile_x = int(player.pos[0] // MG.TILE_SIZE)
     tile_y = int(player.pos[1] // MG.TILE_SIZE)
     return tile_x, tile_y
+
 def on_shrine_check(GameState,MG,sounds, screen, font, clock):
     # Handle tile pickup logic
-        
         tile_x, tile_y = get_tile_x_y(GameState.player, MG)
 
         has_picked_up = set() # Set to track which upgrade tiles have been picked up
@@ -106,3 +106,44 @@ def handle_health_orbs(gs, screen, camera_x, camera_y):
                 gs.player.gain_health(orb.value)
             else:
                 orb.draw(screen, camera_x, camera_y)
+        
+# Update zombies positions and check for collisions or ranged attacks only handles logic not drawing
+def update_zombie_positions(game_state,current_time, DELTA_TIME):
+     for zombie in game_state.zombies:
+            zombie.move_towards_player(game_state.player.pos, DELTA_TIME)
+            if zombie.check_collision_with_player(game_state.player):
+                zombie.attack_player(game_state.player, current_time)
+            
+            # Check if this is a ranged zombie and if it can shoot
+            if hasattr(zombie, 'shoot_at_player'):  # Check if it's a RangedZombie
+                projectile = zombie.shoot_at_player(game_state.player.pos, current_time)
+                if projectile:
+                    projectile.creation_time = current_time
+                    game_state.zombie_projectiles.append(projectile)
+#logic not drawing
+def update_zombie_projectile_positions(game_state, current_time, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
+    for projectile in game_state.zombie_projectiles[:]:
+        projectile.update(DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, current_time)
+        if not projectile.active:
+            game_state.zombie_projectiles.remove(projectile)
+        elif projectile.check_collision_with_player(game_state.player):
+            game_state.player.take_damage(projectile.damage)
+            projectile.active = False
+            game_state.zombie_projectiles.remove(projectile)
+
+def check_bullet_zombie_collisions(GameState):
+    for bullet in GameState.bullets[:]:
+        for zombie in GameState.zombies[:]:
+            if bullet.check_collision_with_zombie(zombie):
+                zombie.health -= bullet.damage
+                bullet.active = False
+                GameState.bullets.remove(bullet)
+                
+                if zombie.health <= 0:
+                    GameState.zombies.remove(zombie)
+                    if(random.randint(1, 10) == 1):
+                        GameState.health_orbs.append(HealthOrb(zombie.pos[0], zombie.pos[1], GameState.player))
+                    else:
+                        GameState.xp_orbs.append(XPOrb(zombie.pos[0], zombie.pos[1], GameState.player))
+                    print(f"Zombie killed! Remaining zombies: {len(GameState.zombies)}")
+                break

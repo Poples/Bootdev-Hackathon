@@ -23,3 +23,13 @@ def render_game_objects(screen, player, zombies, bullets, sprites, camera_x, cam
         bullet_screen_y = bullet.pos[1] - camera_y
         screen.blit(sprites["bullet_img"], (bullet_screen_x - 24, bullet_screen_y - 24))
 
+def update_bullets(bullets, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT):
+
+    for bullet in bullets[:]:  # Use slice copy to allow removal during iteration
+        bullet.update(dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+        if not bullet.active:
+            bullets.remove(bullet)
+
+def draw_zombie_projectiles(gs, game_ui, sprites, camera_x, camera_y):
+    for projectile in gs.zombie_projectiles:
+            projectile.draw(game_ui.screen, camera_x, camera_y, sprites["zombie_spit"])
