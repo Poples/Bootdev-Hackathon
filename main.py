@@ -61,23 +61,24 @@ def main():
         "OrbPickup": pygame.mixer.Sound("assets/mixkit_OrbPickup.wav")
     }
 
-    # Game State Setup
-    gs = GameState()
-    gs.tile_map = MG.generate_tile_map()
+
     # Game world setup
     MAP_PIXEL_WIDTH = MG.TILE_MAP_SIZE * MG.TILE_SIZE
     MAP_PIXEL_HEIGHT = MG.TILE_MAP_SIZE * MG.TILE_SIZE
     player_start_pos = [screen.get_width() / 2, screen.get_height() / 2]
 
+    # Game State Setup
+    gs = GameState()
     gs.player = Player("Jared", PLAYER_HEALTH,PLAYER_MAX_HEALTH, PLAYER_SPEED, PLAYER_ATK_SPEED, sprites["player"], player_start_pos)
 
     gs.player.player_inventory = PlayerInventory()
 
-    GameLogic.initial_zomebie_spawn(gs, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
-    
+    gs.tile_map = MG.generate_tile_map()
+
     gs.game_start_time = pygame.time.get_ticks()
 
-
+    GameLogic.initial_zomebie_spawn(gs, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+    
     DELTA_TIME = 0
     # Main game loop
     while gs.running:
@@ -118,36 +119,31 @@ def main():
         current_time = pygame.time.get_ticks()
         camera_x, camera_y = update_camera(gs.player.pos, screen.get_width(), screen.get_height())
         map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
-        
 
         # Draw tile map
         MG.draw_tile_map(screen, gs.tile_map, map_offset_x, map_offset_y)
         
         # Game Updates
-        GameLogic.on_shrine_check(gs.player, MG, sounds, gs.tile_map, gs.xp_orbs, gs.player_inventory, gs.current_buffs, screen, font, clock, gs.game_start_time)
+        GameLogic.on_shrine_check(gs, MG, sounds, screen, font, clock)
         GameLogic.update_buffs(gs, DELTA_TIME)
         
         PowerUpgrades.draw_buffs(screen, font, screen.get_width(), screen.get_height() , gs.current_buffs)
         # Draw inventory
         gs.player.player_inventory.draw_inventory(screen, font)
         # Draw XP orbs
-        GameLogic.handle_xp_orbs(gs,MG, screen, camera_x, camera_y, font, clock, sounds)
+        GameLogic.handle_xp_orbs(gs, MG, screen, camera_x, camera_y, font, clock, sounds)
         # Draw health orbs
         GameLogic.handle_health_orbs(gs, screen, camera_x, camera_y)
 
-
-
         # Combat system
-        shot_fired, gs.last_shot_time = shoot_at_nearest_zombie(gs.player, gs.zombies, gs.bullets, current_time, 
-                                                            gs.last_shot_time, SHOT_COOLDOWN)
+        shot_fired, gs.last_shot_time = shoot_at_nearest_zombie(gs, current_time, SHOT_COOLDOWN)
         sounds["Shoot"].play() if shot_fired else None
 
         update_bullets(gs.bullets, DELTA_TIME, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
-        check_bullet_zombie_collisions(gs.player, gs.bullets, gs.zombies,gs.xp_orbs,gs.health_orbs)
+        check_bullet_zombie_collisions(gs)
         # Spawning system
-        gs.last_spawn_time = continuous_spawn_system(gs.player.pos, gs.zombies, current_time, gs.last_spawn_time, 
-                                                gs.game_start_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
-                                                DIFFICULTY_INCREASE_INTERVAL, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT,gs.player_inventory)
+        gs.last_spawn_time = continuous_spawn_system(gs, current_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
+                                                DIFFICULTY_INCREASE_INTERVAL, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
         # Update zombies
         for zombie in gs.zombies:
             zombie.move_towards_player(gs.player.pos, DELTA_TIME)
@@ -180,9 +176,8 @@ def main():
         
         # Draw UI
         draw_status_bars(screen, font, gs.player, gs.player_inventory)
-        draw_game_ui(screen, font, gs.player, gs.zombies, gs.bullets, current_time, gs.last_shot_time, SHOT_COOLDOWN,
-                    gs.game_start_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE,
-                    gs.last_spawn_time)
+        draw_game_ui(screen, font, gs,
+                     SHOT_COOLDOWN, current_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE)
         
         # Handle game over
         

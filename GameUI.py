@@ -1,26 +1,25 @@
 # GameUI.py - User interface and HUD elements
 import pygame
 
-def draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot_time, shot_cooldown,
-                game_start_time, difficulty_increase_interval, base_spawn_interval, spawn_rate_increase,
-                last_spawn_time):
+def draw_game_ui(screen, font, game_state,
+                shot_cooldown, current_time, difficulty_increase_interval, base_spawn_interval, spawn_rate_increase):
 
-    health_text = font.render(f"Health: {player.health}", True, (255, 0, 0))
+    health_text = font.render(f"Health: {game_state.player.health}", True, (255, 0, 0))
     screen.blit(health_text, (10, screen.get_height() - 40))
     
-    zombie_count_text = font.render(f"Zombies: {len(zombies)}", True, (255, 255, 255))
+    zombie_count_text = font.render(f"Zombies: {len(game_state.zombies)}", True, (255, 255, 255))
     screen.blit(zombie_count_text, (10, screen.get_height() - 70))
     
-    bullet_count_text = font.render(f"attack speed: {player.atk_speed}", True, (255, 255, 0))
+    bullet_count_text = font.render(f"attack speed: {game_state.player.atk_speed}", True, (255, 255, 0))
     screen.blit(bullet_count_text, (10, screen.get_height() - 100))
 
-    time_since_shot = current_time - last_shot_time
+    time_since_shot = current_time - game_state.last_shot_time
     if time_since_shot < shot_cooldown:
         cooldown_remaining = (shot_cooldown - time_since_shot) / 1000
         cooldown_text = font.render(f"Reload: {cooldown_remaining:.1f}s", True, (255, 165, 0))
         screen.blit(cooldown_text, (10, screen.get_height() - 130))
     
-    time_elapsed = (current_time - game_start_time) / 1000
+    time_elapsed = (current_time - game_state.game_start_time) / 1000
     time_text = font.render(f"Time: {time_elapsed:.1f}s", True, (0, 255, 255))
     screen.blit(time_text, (10, screen.get_height() - 160))
     
@@ -29,10 +28,10 @@ def draw_game_ui(screen, font, player, zombies, bullets, current_time, last_shot
     screen.blit(difficulty_text, (10, screen.get_height() - 190))
     
     from Combat import calculate_current_spawn_interval
-    current_spawn_interval = calculate_current_spawn_interval(current_time, game_start_time, 
+    current_spawn_interval = calculate_current_spawn_interval(current_time, game_state.game_start_time, 
                                                             base_spawn_interval, spawn_rate_increase, 
                                                             difficulty_increase_interval)
-    time_since_spawn = current_time - last_spawn_time
+    time_since_spawn = current_time - game_state.last_spawn_time
     time_until_spawn = max(0, (current_spawn_interval - time_since_spawn) / 1000)
     spawn_timer_text = font.render(f"Next spawn: {time_until_spawn:.1f}s", True, (255, 255, 128))
     screen.blit(spawn_timer_text, (10, screen.get_height() - 220))

@@ -33,47 +33,46 @@ def get_tile_x_y(player, MG):
     tile_x = int(player.pos[0] // MG.TILE_SIZE)
     tile_y = int(player.pos[1] // MG.TILE_SIZE)
     return tile_x, tile_y
-def on_shrine_check(player,MG,sounds, tile_map, xp_orbs, player_inventory, current_buffs, screen, font, clock, game_start_time):
+def on_shrine_check(GameState,MG,sounds, screen, font, clock):
     # Handle tile pickup logic
         
-        tile_x, tile_y = get_tile_x_y(player, MG)
+        tile_x, tile_y = get_tile_x_y(GameState.player, MG)
 
         has_picked_up = set() # Set to track which upgrade tiles have been picked up
 
-
         if 0 <= tile_x < MG.TILE_MAP_SIZE and 0 <= tile_y < MG.TILE_MAP_SIZE:
-            current_tile = tile_map[tile_y][tile_x]
+            current_tile = GameState.tile_map[tile_y][tile_x]
             if current_tile == 2:
                 tile_key = (tile_x, tile_y)
                 if tile_key not in has_picked_up:
                     has_picked_up.add(tile_key)
                     # Draw everything before pausing
                     pygame.display.flip()  # Show the last game frame
-                    player.player_inventory.draw_inventory(screen, font)
+                    GameState.player.player_inventory.draw_inventory(screen, font)
                     sounds["Shrine"].play()
                     pause_start_time = pygame.time.get_ticks()
                     pygame.display.flip()  # Show the last game frame
                     if random.randint(1, 2) == 1:
-                        PowerUpgrades.add_buff(current_buffs, "Speed Boost", 10)
-                        player.speed = player.speed + 2
+                        PowerUpgrades.add_buff(GameState.current_buffs, "Speed Boost", 10)
+                        GameState.player.speed = GameState.player.speed + 2
                         # Pause and show the random buff screen
                         PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), " Extra Speed", 10)
                     else:
-                        PowerUpgrades.add_buff(current_buffs, "Pickup Radius", 10)
-                        player.pickup_radius = player.pickup_radius + 5
-                        for orb in xp_orbs:
-                            orb.pickup_radius = player.pickup_radius
+                        PowerUpgrades.add_buff(GameState.current_buffs, "Pickup Radius", 10)
+                        GameState.player.pickup_radius = GameState.player.pickup_radius + 5
+                        for orb in GameState.xp_orbs:
+                            orb.pickup_radius = GameState.player.pickup_radius
                         # Pause and show the random buff screen
                         PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), "Pickup Radius", 10)
                     clock.tick()  # Reset clock after pause
                     DELTA_TIME = 0
                     # After choosing upgrade, replace the tile
-                    tile_map[tile_y][tile_x] = random.choice([0, 1])
+                    GameState.tile_map[tile_y][tile_x] = random.choice([0, 1])
                     
                     pause_duration = pygame.time.get_ticks() - pause_start_time
-                    game_start_time = game_start_time + pause_duration
+                    GameState.game_start_time = GameState.game_start_time + pause_duration
 
-def handle_xp_orbs(gs,MG, screen, camera_x, camera_y, font, clock, sounds):
+def handle_xp_orbs(gs, MG, screen, camera_x, camera_y, font, clock, sounds):
     tile_x, tile_y = get_tile_x_y(gs.player, MG)
     for orb in gs.xp_orbs[:]:
             if orb.check_collision_with_player(gs.player):
