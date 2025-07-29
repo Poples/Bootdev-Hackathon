@@ -1,15 +1,15 @@
 # Units.py - Contains all unit classes (Player, Zombie, Bullet)
 import pygame
 import math
+import GameUI
 
 class Unit:
     def __init__(self, name, pos_x, pos_y):
         self.name = name
         self.pos = [pos_x, pos_y]
         
-
 class Player(Unit):
-    def __init__(self, name, health,max_health, move_speed, atk_speed, player_image, player_start_pos):
+    def __init__(self, name, health,max_health, move_speed, atk_speed, player_image, player_start_pos,game_ui):
         self.image = player_image
         self.img_rect = self.image.get_rect(center=player_start_pos)
         super().__init__(name, self.img_rect[0], self.img_rect[1])
@@ -24,12 +24,16 @@ class Player(Unit):
         self.pickup_radius = 5  # Default pickup radius
         self.atk_speed = atk_speed
 
+        #this needs to be changed
+        self.game_ui = game_ui
+
     # attribute modifications
     def gain_max_health(self, max_health_gained):
         self.max_health += max_health_gained
 
     def take_damage(self, damage):
         self.health -= damage
+        self.game_ui.trigger_damage_flash()
 
     def gain_health(self, health_gained):
         self.health += health_gained
