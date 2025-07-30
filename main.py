@@ -71,37 +71,18 @@ def main():
     # Main game loop
     while gs.running:
         game_ui.screen.fill("black") #clear last frame with black background
+
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gs.running = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and gs.player.health > 0:
-            # Only allow pausing if player is alive
-                if not gs.paused:
-                    gs.paused = True
-                    gs.pause_start_time = pygame.time.get_ticks()
-                else:
-                    gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
-                    gs.game_start_time += gs.pause_duration
-                    gs.paused = False
+                gs.toggle_pause()
         #pause menu
         if gs.paused:
-            camera_x, camera_y = update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
-            map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
-            GameRenderer.draw_tile_map(game_ui.screen, gs.tile_map, map_offset_x, map_offset_y)
-            GameRenderer.render_game_objects(game_ui.screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
-            menu_choice = game_ui.draw_pause_menu(game_ui.screen, game_ui.font)
-
-            if menu_choice == "resume":
-                gs.pause_duration = pygame.time.get_ticks() - gs.pause_start_time
-                gs.game_start_time += gs.pause_duration
-                gs.paused = False
-            elif menu_choice == "quit":
-                gs.running = False
-            pygame.display.flip()  # Update the display
+            game_ui.draw_pause_screen(gs, game_ui, sprites)
             clock.tick(FPS)  # Maintain frame rate
             continue  # Skip the rest of the loop if paused
-        # Player movements
         if not gs.paused:
             is_game_over = game_ui.draw_game_over_screen(game_ui.screen, game_ui.font, gs.player)
             keys = pygame.key.get_pressed()
@@ -109,6 +90,8 @@ def main():
             should_quit = game_ui.handle_player_input(keys, gs, is_game_over)
             if should_quit:
                 gs.running = False
+
+
         # Time and camera updates
         current_time = pygame.time.get_ticks()
         camera_x, camera_y = update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())

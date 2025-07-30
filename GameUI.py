@@ -1,6 +1,8 @@
 # GameUI.py - User interface and HUD elements
 import pygame
 import config
+import Camera
+import GameRenderer
 
 class GameUI:
     def __init__(self, screen, font):
@@ -155,4 +157,20 @@ class GameUI:
             return "quit"
         
         return None
+    
+    def draw_pause_screen(self,gs, game_ui, sprites):
+        camera_x, camera_y = Camera.update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
+        map_offset_x, map_offset_y = Camera.get_map_offset(camera_x, camera_y)
+        
+        GameRenderer.draw_tile_map(game_ui.screen, gs.tile_map, map_offset_x, map_offset_y)
+        GameRenderer.render_game_objects(game_ui.screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
 
+        menu_choice = game_ui.draw_pause_menu(game_ui.screen, game_ui.font)
+        
+        if menu_choice == "resume":
+            gs.toggle_pause()
+        elif menu_choice == "quit":
+            gs.running = False
+
+        pygame.display.flip()
+        #clock.tick(FPS)

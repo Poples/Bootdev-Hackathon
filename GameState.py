@@ -1,5 +1,7 @@
+import pygame
 
 class GameState:
+
     def __init__(self):
         
         delta_time = 0
@@ -33,3 +35,13 @@ class GameState:
         self.clock = None
         self.game_start_time = 0
         self.delta_time = 0
+        
+    def toggle_pause(self):
+        now = pygame.time.get_ticks()
+        if not self.paused:
+            self.paused = True
+            self.pause_start_time = now
+        else:
+            self.paused = False
+            self.pause_duration = now - self.pause_start_time
+            self.game_start_time += self.pause_duration
