@@ -1,7 +1,8 @@
 
-
 class GameState:
     def __init__(self):
+        
+        delta_time = 0
         # Core entities
         self.player = None
         self.zombies = []

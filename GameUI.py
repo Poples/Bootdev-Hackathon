@@ -1,5 +1,7 @@
 # GameUI.py - User interface and HUD elements
 import pygame
+import config
+
 class GameUI:
     def __init__(self, screen, font):
         self.screen = screen
@@ -7,6 +9,10 @@ class GameUI:
 
         self.flash_start_time = None
         self.flash_duration = 200  # milliseconds
+
+
+    def handle_pause_menu(self,screen,font,gs,sprites):
+        return
     def trigger_damage_flash(self):
         self.flash_start_time = pygame.time.get_ticks()
     def draw_damage_flash(self):
@@ -72,23 +78,23 @@ class GameUI:
             return True
         return False
 
-    def handle_player_input(self, keys, player, dt, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, is_game_over):
+    def handle_player_input(self, keys, game_state, is_game_over):
 
         if is_game_over:
             if keys[pygame.K_ESCAPE]:
                 return True  # Signal to quit game
         else:
             if keys[pygame.K_a]:
-                player.move_left()
+                game_state.player.move_left()
             if keys[pygame.K_d]:
-                player.move_right()
+                game_state.player.move_right()
             if keys[pygame.K_s]:
-                player.move_down()
+                game_state.player.move_down()
             if keys[pygame.K_w]:
-                player.move_up()
+                game_state.player.move_up()
             
             # Apply normalized movement with boundary checking
-            player.movement_normalization(MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT)
+            game_state.player.movement_normalization(config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
             
         
         return False  # Don't quit game
