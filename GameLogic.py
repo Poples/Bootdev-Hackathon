@@ -147,3 +147,23 @@ def check_bullet_zombie_collisions(GameState):
                         GameState.xp_orbs.append(XPOrb(zombie.pos[0], zombie.pos[1], GameState.player))
                     print(f"Zombie killed! Remaining zombies: {len(GameState.zombies)}")
                 break
+
+def handle_player_input(keys, game_state):
+
+    if game_state.game_over:
+        return  
+    if keys[pygame.K_a]:
+        game_state.player.move_left()
+    if keys[pygame.K_d]:
+        game_state.player.move_right()
+    if keys[pygame.K_s]:
+        game_state.player.move_down()
+    if keys[pygame.K_w]:
+        game_state.player.move_up()
+    if keys[pygame.K_ESCAPE]:
+            game_state.paused = True
+            game_state.toggle_pause()  # Signal to quit game
+    # Apply normalized movement with boundary checking
+    game_state.player.movement_normalization(config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
+    
+

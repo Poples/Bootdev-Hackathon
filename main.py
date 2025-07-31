@@ -16,7 +16,7 @@ from Camera import update_camera, get_map_offset , get_screen_position
 
 FPS = 60
 PLAYER_SPEED = 5
-PLAYER_HEALTH = 100
+PLAYER_HEALTH = 1
 PLAYER_MAX_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 PLAYER_PICKUP_RADIUS = 5
@@ -71,8 +71,8 @@ def main():
     # Main game loop
     while gs.running:
         game_ui.screen.fill("black") #clear last frame with black background
-
         # Handle events
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gs.running = False
@@ -80,18 +80,22 @@ def main():
                 gs.toggle_pause()
         #pause menu
         if gs.paused:
-            game_ui.draw_pause_screen(gs, game_ui, sprites)
-            clock.tick(FPS)  # Maintain frame rate
-            continue  # Skip the rest of the loop if paused
-        if not gs.paused:
-            is_game_over = game_ui.draw_game_over_screen(game_ui.screen, game_ui.font, gs.player)
-            keys = pygame.key.get_pressed()
-            # Handle input
-            should_quit = game_ui.handle_player_input(keys, gs, is_game_over)
-            if should_quit:
-                gs.running = False
-
-
+            if not gs.game_over:
+                game_ui.draw_pause_screen(gs, game_ui, sprites)
+                clock.tick(FPS)  # Maintain frame rate
+                continue  # Skip the rest of the loop if paused
+            else:
+                game_ui.draw_game_over_screen(gs, game_ui, sprites)
+                if GameLogic.handle_player_input(pygame.key.get_pressed(), gs):
+                    gs.running = False
+                clock.tick(FPS)
+                continue
+        if gs.player.health <= 0:
+            if not gs.game_over:
+                gs.game_ended_time = pygame.time.get_ticks() - gs.game_start_time
+                gs.game_over = True
+            gs.toggle_pause()  # Pause the game if player is dead
+            
         # Time and camera updates
         current_time = pygame.time.get_ticks()
         camera_x, camera_y = update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
@@ -137,7 +141,11 @@ def main():
         game_ui.draw_game_ui(game_ui.screen, game_ui.font, gs,
                      SHOT_COOLDOWN, current_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE)
         # --- end of to GameUI ---
-
+        
+        #input handling
+        keys_pressed = pygame.key.get_pressed()
+        GameLogic.handle_player_input(keys_pressed, gs)
+        
         pygame.display.flip()
         gs.delta_time = clock.tick(FPS) / 1000
     pygame.quit()

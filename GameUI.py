@@ -13,8 +13,6 @@ class GameUI:
         self.flash_duration = 200  # milliseconds
 
 
-    def handle_pause_menu(self,screen,font,gs,sprites):
-        return
     def trigger_damage_flash(self):
         self.flash_start_time = pygame.time.get_ticks()
     def draw_damage_flash(self):
@@ -71,36 +69,8 @@ class GameUI:
         spawn_timer_text = font.render(f"Next spawn: {time_until_spawn:.1f}s", True, (255, 255, 128))
         screen.blit(spawn_timer_text, (10, screen.get_height() - 220))
 
-    def draw_game_over_screen(self,screen, font, player):
-
-        if player.health <= 0:
-            game_over_text = font.render("GAME OVER! Press ESC to quit", True, (255, 255, 255))
-            game_over_rect = game_over_text.get_rect(center=(screen.get_width()//2, screen.get_height()//2))
-            screen.blit(game_over_text, game_over_rect)
-            return True
-        return False
-
-    def handle_player_input(self, keys, game_state, is_game_over):
-
-        if is_game_over:
-            if keys[pygame.K_ESCAPE]:
-                return True  # Signal to quit game
-        else:
-            if keys[pygame.K_a]:
-                game_state.player.move_left()
-            if keys[pygame.K_d]:
-                game_state.player.move_right()
-            if keys[pygame.K_s]:
-                game_state.player.move_down()
-            if keys[pygame.K_w]:
-                game_state.player.move_up()
-            
-            # Apply normalized movement with boundary checking
-            game_state.player.movement_normalization(config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
-            
-        
-        return False  # Don't quit game
-
+    
+    
     def draw_status_bars(self, player):
         # Constants
         bar_width = 200
@@ -114,7 +84,7 @@ class GameUI:
         #health_bar_rect = pygame.Rect(screen_width // 2 - bar_width - spacing, top_margin, bar_width, bar_height)
         #pygame.draw.rect(screen, (100, 0, 0), health_bar_rect)  # Dark red background
         #pygame.draw.rect(screen, (255, 0, 0), (health_bar_rect.x, health_bar_rect.y, bar_width * health_ratio, bar_height))
-    #
+        #
         ## Health label
         #health_text = font.render("Health", True, (255, 255, 255))
         #screen.blit(health_text, (health_bar_rect.centerx - health_text.get_width() // 2, health_bar_rect.y + bar_height + 2))
@@ -130,34 +100,6 @@ class GameUI:
         xp_text = self.font.render("XP", True, (255, 255, 255))
         self.screen.blit(xp_text, (xp_bar_rect.centerx - xp_text.get_width() // 2, xp_bar_rect.y + bar_height + 2))
 
-    def draw_pause_menu(self, screen, font):
-
-        overlay = pygame.Surface((screen.get_width(), screen.get_height()))
-        overlay.set_alpha(128)
-        overlay.fill((0, 0, 0))
-        screen.blit(overlay, (0, 0))
-        
-        title_text = font.render("GAME PAUSED", True, (255, 255, 255))
-        resume_text = font.render("Press ESC to Resume", True, (255, 255, 255))
-        quit_text = font.render("Press Q to Quit", True, (255, 255, 255))
-        
-        screen_center_x = screen.get_width() // 2
-        screen_center_y = screen.get_height() // 2
-        
-        title_rect = title_text.get_rect(center=(screen_center_x, screen_center_y - 60))
-        resume_rect = resume_text.get_rect(center=(screen_center_x, screen_center_y))
-        quit_rect = quit_text.get_rect(center=(screen_center_x, screen_center_y + 40))
-        
-        screen.blit(title_text, title_rect)
-        screen.blit(resume_text, resume_rect)
-        screen.blit(quit_text, quit_rect)
-        
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_q]:
-            return "quit"
-        
-        return None
-    
     def draw_pause_screen(self,gs, game_ui, sprites):
         camera_x, camera_y = Camera.update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
         map_offset_x, map_offset_y = Camera.get_map_offset(camera_x, camera_y)
@@ -165,12 +107,72 @@ class GameUI:
         GameRenderer.draw_tile_map(game_ui.screen, gs.tile_map, map_offset_x, map_offset_y)
         GameRenderer.render_game_objects(game_ui.screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
 
-        menu_choice = game_ui.draw_pause_menu(game_ui.screen, game_ui.font)
+        overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()))
+        overlay.set_alpha(128)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
         
-        if menu_choice == "resume":
-            gs.toggle_pause()
-        elif menu_choice == "quit":
+        title_text = self.font.render("GAME PAUSED", True, (255, 255, 255))
+        resume_text = self.font.render("Press ESC to Resume", True, (255, 255, 255))
+        quit_text = self.font.render("Press Q to Quit", True, (255, 255, 255))
+        
+        screen_center_x = self.screen.get_width() // 2
+        screen_center_y = self.screen.get_height() // 2
+        
+        title_rect = title_text.get_rect(center=(screen_center_x, screen_center_y - 60))
+        resume_rect = resume_text.get_rect(center=(screen_center_x, screen_center_y))
+        quit_rect = quit_text.get_rect(center=(screen_center_x, screen_center_y + 40))
+        
+        self.screen.blit(title_text, title_rect)
+        self.screen.blit(resume_text, resume_rect)
+        self.screen.blit(quit_text, quit_rect)
+
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_q]:
             gs.running = False
 
         pygame.display.flip()
         #clock.tick(FPS)
+    def draw_game_over_screen(self,gs, game_ui, sprites):
+
+            #game_over_text = font.render("GAME OVER! Press ESC to quit", True, (255, 255, 255))
+            #game_over_rect = game_over_text.get_rect(center=(screen.get_width()//2, screen.get_height()//2))
+            #screen.blit(game_over_text, game_over_rect)
+            #pygame.display.flip()  # Update the display to show the game over screen
+            camera_x, camera_y = Camera.update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
+            map_offset_x, map_offset_y = Camera.get_map_offset(camera_x, camera_y)
+            
+            GameRenderer.draw_tile_map(self.screen, gs.tile_map, map_offset_x, map_offset_y)
+            GameRenderer.render_game_objects(self.screen, gs.player, gs.zombies, gs.bullets, sprites, camera_x, camera_y)
+
+            overlay = pygame.Surface((self.screen.get_width(), self.screen.get_height()))
+            overlay.set_alpha(128)
+            overlay.fill((0, 0, 0))
+            self.screen.blit(overlay, (0, 0))
+            
+            title_text = self.font.render("GAME over", True, (255, 255, 255))
+            #resume_text = self.font.render("Press ESC to Resume", True, (255, 255, 255))
+            quit_text = self.font.render("Press Q to Quit", True, (255, 255, 255))
+
+            stats_text = self.font.render(f"Time: {gs.game_ended_time / 1000:.1f}s", True, (255, 255, 255))
+            
+            screen_center_x = self.screen.get_width() // 2
+            screen_center_y = self.screen.get_height() // 2
+            
+            title_rect = title_text.get_rect(center=(screen_center_x, screen_center_y - 60))
+            #resume_rect = resume_text.get_rect(center=(screen_center_x, screen_center_y))
+            stats_rect = stats_text.get_rect(center=(screen_center_x, screen_center_y))
+            quit_rect = quit_text.get_rect(center=(screen_center_x, screen_center_y + 40))
+            
+            self.screen.blit(title_text, title_rect)
+            #self.screen.blit(resume_text, resume_rect)
+            self.screen.blit(stats_text, stats_rect)
+            self.screen.blit(quit_text, quit_rect)
+
+            keys = pygame.key.get_pressed()
+            
+            if keys[pygame.K_q]:
+                gs.running = False
+
+            pygame.display.flip()

@@ -25,9 +25,11 @@ class GameState:
         self.game_start_time = 0
         self.pause_duration = 0
         self.pause_start_time = 0
+        self.game_ended_time = 0
 
         self.running = True
         self.paused = False
+        self.game_over = False
 
         self.player_inventory = None
         self.current_buffs = []
