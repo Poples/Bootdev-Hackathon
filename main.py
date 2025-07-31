@@ -16,7 +16,7 @@ from Camera import update_camera, get_map_offset , get_screen_position
 
 FPS = 60
 PLAYER_SPEED = 5
-PLAYER_HEALTH = 1
+PLAYER_HEALTH = 100
 PLAYER_MAX_HEALTH = 100
 PLAYER_ATK_SPEED = 1
 PLAYER_PICKUP_RADIUS = 5
