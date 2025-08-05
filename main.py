@@ -10,7 +10,7 @@ import PowerUpgrades
 import config
 
 import Combat
-from PlayerInventory import PlayerInventory, XPOrb
+from PlayerInventory import PlayerInventory
 from Units import Player, Zombie, RangedZombie
 from Camera import update_camera, get_map_offset , get_screen_position
 

@@ -2,8 +2,7 @@ import pygame
 import random
 import PowerUpgrades
 import math
-from Units import Zombie
-from PlayerInventory import XPOrb, HealthOrb
+from Units import Zombie,XPOrb, HealthOrb
 import config
 import GameUI
 
