@@ -12,6 +12,22 @@ class GameUI:
         self.flash_start_time = None
         self.flash_duration = 200  # milliseconds
 
+    def draw_inventory(self,inventory):
+        x, y = 10, 10  # top-left corner
+        for item, quantity in inventory.items.items():
+            if item == "XP":
+                continue
+            text = f"{item}: {quantity}"
+            text_surface = self.font.render(text, True, (255, 255, 0))
+            self.screen.blit(text_surface, (x, y))
+            y += 20  # spacing between lines
+        self.screen.blit(self.font.render(f"Level: {inventory.level}", True, (255, 0, 0)), (x, y + 20))  # Display level
+
+    def draw_buffs(self,screen, FONT, screen_width, screen_height,buffs):
+        for buff in buffs:
+            buff_name, time_left = buff
+            text_surface = FONT.render(f"{buff_name}: {time_left:.1f}s", True, (255, 255, 0))
+            screen.blit(text_surface, (screen_width - 250, 30 * (buffs.index(buff) + 1)))
 
     def trigger_damage_flash(self):
         self.flash_start_time = pygame.time.get_ticks()

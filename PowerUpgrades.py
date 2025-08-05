@@ -55,7 +55,7 @@ def draw_upgrade_options(screen, options, FONT, screen_width, screen_height):
 
 def apply_upgrade(player, upgrade_type):
     player.player_inventory.add_item(upgrade_type, 1)
-    print(f"Upgrade added to inventory: {upgrade_type}")
+    #print(f"Upgrade added to inventory: {upgrade_type}")
     if upgrade_type == "Fire Rate Up":
         player.gain_atk_speed(0.90)
     if upgrade_type == "Extra Health":
@@ -125,12 +125,6 @@ def update_buffs(current_buffs, dt):
 
 def add_buff(current_buffs, buff_name, duration):
     current_buffs.append((buff_name, duration))
-
-def draw_buffs(screen, FONT, screen_width, screen_height,buffs):
-    for buff in buffs:
-        buff_name, time_left = buff
-        text_surface = FONT.render(f"{buff_name}: {time_left:.1f}s", True, (255, 255, 0))
-        screen.blit(text_surface, (screen_width - 250, 30 * (buffs.index(buff) + 1)))
 
 def reset_player_buffs(player):
     player.speed = main.PLAYER_SPEED

@@ -5,6 +5,7 @@ import math
 from Units import Zombie
 from PlayerInventory import XPOrb, HealthOrb
 import config
+import GameUI
 
 def initial_zombie_spawn(gs):
     # Spawn initial zombies around the map
@@ -34,7 +35,7 @@ def get_tile_x_y(player):
     tile_y = int(player.pos[1] // config.TILE_SIZE)
     return tile_x, tile_y
 
-def on_shrine_check(game_state,sounds, screen, font, clock):
+def on_shrine_check(game_state,sounds, clock,game_ui):
     # Handle tile pickup logic
         tile_x, tile_y = get_tile_x_y(game_state.player)
 
@@ -48,7 +49,7 @@ def on_shrine_check(game_state,sounds, screen, font, clock):
                     has_picked_up.add(tile_key)
                     # Draw everything before pausing
                     pygame.display.flip()  # Show the last game frame
-                    game_state.player.player_inventory.draw_inventory(screen, font)
+                    game_ui.draw_inventory(game_state.player.player_inventory)
                     sounds["Shrine"].play()
                     pause_start_time = pygame.time.get_ticks()
                     pygame.display.flip()  # Show the last game frame
@@ -56,14 +57,14 @@ def on_shrine_check(game_state,sounds, screen, font, clock):
                         PowerUpgrades.add_buff(game_state.current_buffs, "Speed Boost", 10)
                         game_state.player.speed = game_state.player.speed + 2
                         # Pause and show the random buff screen
-                        PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), " Extra Speed", 10)
+                        PowerUpgrades.open_randombuff_screen(game_ui.screen, game_ui.font, game_ui.screen.get_width(), game_ui.screen.get_height(), " Extra Speed", 10)
                     else:
                         PowerUpgrades.add_buff(game_state.current_buffs, "Pickup Radius", 10)
                         game_state.player.pickup_radius = game_state.player.pickup_radius + 5
                         for orb in game_state.xp_orbs:
                             orb.pickup_radius = game_state.player.pickup_radius
                         # Pause and show the random buff screen
-                        PowerUpgrades.open_randombuff_screen(screen, font, screen.get_width(), screen.get_height(), "Pickup Radius", 10)
+                        PowerUpgrades.open_randombuff_screen(game_ui.screen, game_ui.font, game_ui.screen.get_width(), game_ui.screen.get_height(), "Pickup Radius", 10)
                     clock.tick()  # Reset clock after pause
                     DELTA_TIME = 0
                     # After choosing upgrade, replace the tile

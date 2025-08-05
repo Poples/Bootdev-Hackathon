@@ -2,6 +2,7 @@
 import pygame
 import math
 import GameUI
+import Camera
 
 class Unit:
     def __init__(self, name, pos_x, pos_y):
@@ -301,3 +302,43 @@ class ZombieProjectile:
                 projectile_right > player_left and 
                 projectile_top < player_bottom and 
                 projectile_bottom > player_top)
+    
+
+class XPOrb:
+    def __init__(self, x, y, player, value = 1 ):
+        self.pos = [x, y]
+        self.pickup_radius = player.pickup_radius
+        self.value = value
+        self.image = pygame.image.load("assets/XPOrbSprite.png")
+        self.collected = False
+
+    def draw(self, screen, camera_x, camera_y):
+        screen_x, screen_y = Camera.get_screen_position(self.pos, camera_x, camera_y)
+        screen.blit(self.image, (screen_x, screen_y))
+
+    def check_collision_with_player(self, player):
+        player_x, player_y = player.pos
+        dx = player_x - self.pos[0]
+        dy = player_y - self.pos[1]
+        distance = (dx**2 + dy**2)**0.5
+        return distance <= self.pickup_radius * self.pickup_radius
+    
+
+class HealthOrb:
+    def __init__(self, x, y, player, value = 10 ):
+        self.pos = [x, y]
+        self.pickup_radius = player.pickup_radius
+        self.value = value
+        self.image = pygame.image.load("assets/HealthOrbSprite.png")
+        self.collected = False
+
+    def draw(self, screen, camera_x, camera_y):
+        screen_x, screen_y = Camera.get_screen_position(self.pos, camera_x, camera_y)
+        screen.blit(self.image, (screen_x, screen_y))
+
+    def check_collision_with_player(self, player):
+        player_x, player_y = player.pos
+        dx = player_x - self.pos[0]
+        dy = player_y - self.pos[1]
+        distance = (dx**2 + dy**2)**0.5
+        return distance <= self.pickup_radius * self.pickup_radius

@@ -2,7 +2,6 @@
 import math
 import random
 from Units import Bullet, Zombie, RangedZombie
-from PlayerInventory import XPOrb, HealthOrb
 
 def find_nearest_zombie(player_pos, zombies):
     
@@ -26,7 +25,7 @@ def find_nearest_zombie(player_pos, zombies):
 def shoot_at_nearest_zombie(GameState, current_time, shot_cooldown,sounds):
 
     if current_time - GameState.last_shot_time < shot_cooldown * GameState.player.atk_speed:
-        return GameState.last_shot_time
+        return
     
     nearest_zombie = find_nearest_zombie(GameState.player.pos, GameState.zombies)
     if nearest_zombie:
@@ -36,9 +35,7 @@ def shoot_at_nearest_zombie(GameState, current_time, shot_cooldown,sounds):
         GameState.bullets.append(bullet)
         GameState.last_shot_time = current_time
         sounds["Shoot"].play()
-        return GameState.last_shot_time
     
-    return GameState.last_shot_time
 
 
 def spawn_zombie_around_player(zombietype,player_pos, zombies_count, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, min_distance=500, max_distance=1000):
@@ -117,11 +114,7 @@ def continuous_spawn_system( game_state, current_time,
             if new_zombie:
                 game_state.zombies.append(new_zombie)
         
-        return current_time
-    
-    return game_state.last_spawn_time
-
-
+        game_state.last_spawn_time = current_time
 
 def spawn_ranged_zombie_around_player(player_pos, zombies_count, MAP_PIXEL_WIDTH, MAP_PIXEL_HEIGHT, 
                                      min_distance=500, max_distance=1000):

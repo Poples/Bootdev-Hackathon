@@ -9,9 +9,9 @@ from GameUI import GameUI
 import PowerUpgrades
 import config
 
+import Combat
 from PlayerInventory import PlayerInventory, XPOrb
 from Units import Player, Zombie, RangedZombie
-from Combat import (shoot_at_nearest_zombie,continuous_spawn_system)
 from Camera import update_camera, get_map_offset , get_screen_position
 
 FPS = 60
@@ -35,7 +35,7 @@ DIFFICULTY_INCREASE_INTERVAL = 15000  # Increase difficulty every 15 seconds
 # logic in units.py need to go to gamelogic
 # logic in combat needs to go to gamerenderer
 # move most consants to config.py
-#move pause logic into game ui and gamestate
+# cleanup pause logic and move into game ui and gamestate
 def main():
     # Initialization 
     pygame.init()
@@ -97,36 +97,15 @@ def main():
             gs.toggle_pause()  # Pause the game if player is dead
             
         # Time and camera updates
-        current_time = pygame.time.get_ticks()
+        #current_time = pygame.time.get_ticks()
+
         camera_x, camera_y = update_camera(gs.player.pos, game_ui.screen.get_width(), game_ui.screen.get_height())
         map_offset_x, map_offset_y = get_map_offset(camera_x, camera_y)
-        # Draw tile map
-        GameRenderer.draw_tile_map(game_ui.screen, gs.tile_map, map_offset_x, map_offset_y)
-        # Game Updates
-        GameLogic.on_shrine_check(gs, sounds, game_ui.screen, game_ui.font, clock)
-        GameLogic.update_buffs(gs, gs.delta_time)
-        PowerUpgrades.draw_buffs(game_ui.screen, game_ui.font, game_ui.screen.get_width(), game_ui.screen.get_height() , gs.current_buffs)
-        # Draw inventory
-        gs.player.player_inventory.draw_inventory(game_ui.screen, game_ui.font)
-        # Draw XP orbs
-        GameLogic.handle_xp_orbs(gs,game_ui.screen, camera_x, camera_y, game_ui.font, clock, sounds)
-        # Draw health orbs
-        GameLogic.handle_health_orbs(gs, game_ui.screen, camera_x, camera_y)
 
-        # --- TO GAMELOGIC ---
-        # Combat system
-        gs.last_shot_time = shoot_at_nearest_zombie(gs, current_time, SHOT_COOLDOWN,sounds)
-        # Spawning system
-        gs.last_spawn_time = continuous_spawn_system(gs, current_time, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
-                                                DIFFICULTY_INCREASE_INTERVAL, config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
-        # Update zombies positions and check for collisions or ranged attacks only handles logic not drawing
-        GameLogic.update_zombie_positions(gs,current_time, gs.delta_time)
-        # Update zombie projectiles logic not drawing
-        GameLogic.update_zombie_projectile_positions(gs, current_time, gs.delta_time, config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
-        GameLogic.check_bullet_zombie_collisions(gs)
-        # --- end of TO GAMELOGIC ---
 
         # --- to GameRenderer ---
+        # Draw tile map
+        GameRenderer.draw_tile_map(game_ui.screen, gs.tile_map, map_offset_x, map_offset_y)
         GameRenderer.update_bullets(gs.bullets, gs.delta_time)
         # Render all game objects
         GameRenderer.render_game_objects(game_ui.screen, gs.player, gs.zombies,gs.bullets, sprites, camera_x, camera_y)
@@ -134,12 +113,37 @@ def main():
         GameRenderer.draw_zombie_projectiles(gs, game_ui, sprites, camera_x, camera_y)
         # --- end of to GameRenderer ---
 
+
+        # --- TO GAMELOGIC ---
+        # Game Updates
+        GameLogic.on_shrine_check(gs, sounds, clock,game_ui)
+        GameLogic.update_buffs(gs, gs.delta_time)
+        # Draw XP orbs
+        GameLogic.handle_xp_orbs(gs,game_ui.screen, camera_x, camera_y, game_ui.font, clock, sounds)
+        # Draw health orbs
+        GameLogic.handle_health_orbs(gs, game_ui.screen, camera_x, camera_y)
+        # Combat system
+        Combat.shoot_at_nearest_zombie(gs, pygame.time.get_ticks(), SHOT_COOLDOWN,sounds)
+        # Spawning system
+        Combat.continuous_spawn_system(gs, pygame.time.get_ticks(), BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE, 
+                                                DIFFICULTY_INCREASE_INTERVAL, config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
+        # Update zombies positions and check for collisions or ranged attacks only handles logic not drawing
+        GameLogic.update_zombie_positions(gs,pygame.time.get_ticks(), gs.delta_time)
+        # Update zombie projectiles logic not drawing
+        GameLogic.update_zombie_projectile_positions(gs, pygame.time.get_ticks(), gs.delta_time, config.MAP_PIXEL_WIDTH, config.MAP_PIXEL_HEIGHT)
+        GameLogic.check_bullet_zombie_collisions(gs)
+        # --- end of TO GAMELOGIC ---
+        
+
         # --- to GameUI ---
+        # Draw inventory
+        game_ui.draw_inventory(gs.player.player_inventory)
         # Draw UI
+        game_ui.draw_buffs(game_ui.screen, game_ui.font, game_ui.screen.get_width(), game_ui.screen.get_height() , gs.current_buffs)
         game_ui.draw_damage_flash()
         game_ui.draw_status_bars(gs.player)
         game_ui.draw_game_ui(game_ui.screen, game_ui.font, gs,
-                     SHOT_COOLDOWN, current_time, DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE)
+                     SHOT_COOLDOWN, pygame.time.get_ticks(), DIFFICULTY_INCREASE_INTERVAL, BASE_SPAWN_INTERVAL, SPAWN_RATE_INCREASE)
         # --- end of to GameUI ---
         
         #input handling
